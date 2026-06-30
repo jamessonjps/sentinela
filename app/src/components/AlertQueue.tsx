@@ -56,12 +56,12 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
   });
 
   return (
-    <div className="glass-card p-5 w-full h-full min-h-0 flex flex-col rounded-2xl overflow-hidden">
+    <div className="glass-card p-3.5 w-full h-full min-h-0 flex flex-col rounded-xl overflow-hidden">
       {/* Header com Filtros Principais */}
-      <div className="flex flex-col gap-4 mb-4">
+      <div className="flex flex-col gap-2.5 mb-3 shrink-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldAlert className="text-primary w-5 h-5 animate-pulse" />
+          <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
+            <ShieldAlert className="text-primary w-4 h-4 animate-pulse" />
             Fila de Auditoria
           </h2>
           <span className="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full font-bold border border-primary/20">
@@ -75,7 +75,7 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`py-2 rounded-lg transition-all cursor-pointer ${
+              className={`py-1.5 rounded-md transition-all cursor-pointer ${
                 statusFilter === status
                   ? "bg-primary/20 text-white border border-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
                   : "text-muted-foreground hover:text-white"
@@ -94,13 +94,13 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
             placeholder="Buscar por BO, CAD, local..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black/20 border border-white/5 pl-9 pr-3 py-2 rounded-xl text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
+            className="w-full bg-black/20 border border-white/5 pl-9 pr-3 py-1.5 rounded-lg text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
           />
         </div>
       </div>
 
       {/* Lista de Alertas */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 min-h-0">
         {loading ? (
           <div className="h-40 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -123,7 +123,7 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
                   exit={{ opacity: 0, x: -50 }}
                   transition={{ duration: 0.2, delay: Math.min(index * 0.05, 0.5) }}
                   onClick={() => onSelectAlert(alert)}
-                  className={`glass-button p-3.5 rounded-xl flex items-center justify-between group cursor-pointer transition-all duration-300 ${
+                  className={`glass-button p-2.5 rounded-lg flex items-center justify-between group cursor-pointer transition-all duration-300 ${
                     isSelected
                       ? "bg-primary/10 border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.15)] scale-[1.01]"
                       : "hover:bg-white/5 border-white/5"
@@ -147,7 +147,7 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
                         ID: {alert.id_controle_morte} • {alert.subjetividade}
                       </p>
                       
-                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mt-2">
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mt-1.5">
                         <span className="flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-primary/75" />
                           {alert.cidade}

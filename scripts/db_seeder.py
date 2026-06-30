@@ -69,7 +69,7 @@ def seed_casos(session, csv_path):
             RISP=clean_val(row.get('RISP')),
             STATUS=clean_val(row.get('STATUS')),
             NOME_VITIMA=clean_val(row.get('NOME_VITIMA')),
-            NOM_VITIMA_IML=clean_val(row.get('NOM_VITIMA')),
+            NOM_VITIMA_IML='IML_VITIMA_' + str(clean_val(row.get('ID_CONTROLE_MORTE', ''))),
             ALERTA_BO_INEXISTENTE=clean_val(row.get('ALERTA_BO_INEXISTENTE')),
             ALERTA_NATUREZA_DIVERGENTE=clean_val(row.get('ALERTA_NATUREZA_DIVERGENTE')),
             ALERTA_CAD_FALTANTE=clean_val(row.get('ALERTA_CAD_FALTANTE')),

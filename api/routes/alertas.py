@@ -79,7 +79,7 @@ def get_alertas(
                 "declaracao_obito": caso.NR_DECLARACAO_OBITO,
                 "sexo": caso.SEXO,
                 "nome_vitima_cm": caso.NOME_VITIMA,
-                "nome_vitima_iml": caso.NOM_VITIMA_IML
+                "nome_vitima_iml": f"IML_VITIMA_{caso.ID_CONTROLE_MORTE}" if caso.NOM_VITIMA_IML else None
             }
             alertas.append(item)
             
@@ -208,7 +208,7 @@ def get_alerta_detalhe(alerta_id: int, db: Session = Depends(get_db)):
             "iml_etnia": caso.ETNIA,
             "iml_nascimento": caso.NASCIMENTO,
             "nome_vitima_cm": caso.NOME_VITIMA,
-            "nome_vitima_iml": caso.NOM_VITIMA_IML
+            "nome_vitima_iml": f"IML_VITIMA_{caso.ID_CONTROLE_MORTE}" if caso.NOM_VITIMA_IML else None
         }
     }
 

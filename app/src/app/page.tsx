@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Search, Bell, Menu, ShieldAlert, Compass, Eye, CheckCircle2 } from "lucide-react";
+import { Shield, Search, Bell, Menu, ShieldAlert, Compass, Eye, CheckCircle2, Lock } from "lucide-react";
 import { AlertQueue } from "@/components/AlertQueue";
 import { CaseTimeline } from "@/components/CaseTimeline";
 import { IMLQualityCard } from "@/components/IMLQualityCard";
 import { DAASQualityCard } from "@/components/DAASQualityCard";
+import { NEACQualityCard } from "@/components/NEACQualityCard";
 import { DashboardStats } from "@/components/DashboardStats";
 import { RadarCAD } from "@/components/RadarCAD";
 
@@ -77,35 +78,34 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen lg:h-screen lg:max-h-screen p-4 lg:p-5 flex flex-col gap-4 max-w-[1920px] mx-auto lg:overflow-hidden">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen p-3 flex flex-col gap-2.5 max-w-[1920px] mx-auto lg:overflow-hidden">
       {/* Header Premium */}
-      <header className="glass-panel px-6 py-4 rounded-2xl flex items-center justify-between sticky top-4 z-50 transition-all">
-        <div className="flex items-center gap-4">
+      <header className="glass-panel px-5 py-2 rounded-xl flex items-center justify-between z-50 transition-all shrink-0">
+        <div className="flex items-center gap-3">
           <motion.div 
             whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-4"
+            className="flex items-center gap-3"
           >
             {/* Bloco Logomarca NEAC (Imagem Limpa + Subtexto HTML para máxima nitidez) */}
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-0.5">
               <img 
                 src="/logo_neac_white.png" 
                 alt="Logo NEAC" 
-                className="h-7 w-auto opacity-95 filter drop-shadow-[0_0_6px_rgba(59,130,246,0.3)]" 
+                className="h-6 w-auto opacity-95 filter drop-shadow-[0_0_6px_rgba(59,130,246,0.3)]" 
               />
-              <span className="text-[6px] text-white/50 font-bold uppercase tracking-wider text-center block max-w-[150px] leading-tight">
+              <span className="text-[5px] text-white/50 font-bold uppercase tracking-wider text-center block max-w-[130px] leading-tight">
                 NÚCLEO DE ESTATÍSTICA E ANÁLISE CRIMINAL
               </span>
             </div>
 
             {/* Divisor */}
-            <div className="w-[1px] h-10 bg-white/10 mx-1 hidden sm:block" />
+            <div className="w-[1px] h-8 bg-white/10 hidden sm:block" />
 
             {/* Brasão de Alagoas */}
             <img 
               src="/brasao_alagoas.png" 
               alt="Brasão de Alagoas" 
-              className="h-9 w-auto opacity-90 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] hidden sm:block" 
-            />
+              className="h-8 w-auto opacity-90 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] hidden sm:block" />
 
             {/* Título do Sistema */}
             <div className="hidden sm:block">
@@ -115,24 +115,24 @@ export default function DashboardPage() {
                   CHENEAC
                 </span>
               </h1>
-              <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider mt-1.5">SSP - Estado de Alagoas</p>
+              <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-wider mt-1">SSP - Estado de Alagoas</p>
             </div>
           </motion.div>
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <div className="relative hidden md:block group">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input 
               type="text" 
               placeholder="Pesquisar boletim, CAD ou NIC..." 
-              className="glass-button pl-10 pr-4 py-2.5 rounded-xl text-xs w-72 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all bg-black/20"
+              className="glass-button pl-10 pr-4 py-2 rounded-lg text-xs w-64 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all bg-black/20"
             />
           </div>
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="glass-button w-11 h-11 rounded-xl flex items-center justify-center relative hover:bg-white/10"
+            className="glass-button w-9 h-9 rounded-lg flex items-center justify-center relative hover:bg-white/10"
           >
             <Bell className="w-5 h-5 text-foreground" />
             <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-destructive rounded-full shadow-[0_0_10px_rgba(220,38,38,1)] border border-background"></span>
@@ -159,11 +159,11 @@ export default function DashboardPage() {
       />
 
       {/* Seletor de Abas Principal */}
-      <div className="flex justify-start border-b border-white/5 pb-1">
-        <div className="flex gap-2 p-1 bg-black/20 border border-white/5 rounded-xl text-xs font-bold">
+      <div className="flex justify-start shrink-0">
+        <div className="flex gap-1.5 p-0.5 bg-black/20 border border-white/5 rounded-lg text-xs font-bold">
           <button
             onClick={() => setActiveTab("auditoria")}
-            className={`px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-all cursor-pointer text-[11px] ${
               activeTab === "auditoria"
                 ? "bg-primary/20 text-white border border-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
                 : "text-muted-foreground hover:text-white"
@@ -175,14 +175,18 @@ export default function DashboardPage() {
           
           <button
             onClick={() => setActiveTab("radar")}
-            className={`px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-all cursor-pointer text-[11px] ${
               activeTab === "radar"
-                ? "bg-primary/20 text-white border border-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-white/5 text-muted-foreground border border-white/10"
+                : "text-muted-foreground/50"
             }`}
           >
-            <Compass className="w-4 h-4" />
+            <Compass className="w-4 h-4 opacity-50" />
             Radar de Ocorrências (CAD/190)
+            <span className="text-[8px] bg-white/5 border border-white/10 px-1.5 py-0.5 rounded text-muted-foreground font-bold uppercase tracking-wider ml-1 flex items-center gap-1">
+              <Lock className="w-2.5 h-2.5" />
+              Fase Futura
+            </span>
           </button>
         </div>
       </div>
@@ -197,7 +201,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0 overflow-hidden"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 overflow-hidden"
             >
               {/* Fila de Auditoria */}
               <div className="lg:col-span-4 min-h-0 overflow-hidden">
@@ -215,8 +219,12 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* IML & DAAS Quality Cards */}
-              <div className="lg:col-span-3 min-h-0 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
+              {/* Quality Cards: NEAC (Ativo) + Polícia Científica + Polícia Civil (Fase Futura) */}
+              <div className="lg:col-span-3 min-h-0 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
+                <NEACQualityCard 
+                  divergenciasCount={(stats.status?.novos || 0) + (stats.status?.em_tratativa || 0)} 
+                  totalMvi={stats.mvi_total || 0} 
+                />
                 <IMLQualityCard 
                   corposSemDo={stats.corpos_sem_do || 0} 
                   totalMvi={stats.mvi_total || 0} 
@@ -234,9 +242,21 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="h-full flex-1"
+              className="h-full flex-1 flex items-center justify-center"
             >
-              <RadarCAD onStatusChanged={handleRadarStatusChanged} />
+              <div className="glass-card p-8 rounded-2xl flex flex-col items-center justify-center text-center max-w-md">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground mb-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                  <Lock className="w-8 h-8 opacity-40" />
+                </div>
+                <h3 className="text-sm font-bold text-white mb-2">Radar de Ocorrências — Fase Futura</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-[300px]">
+                  O cruzamento das ocorrências do CAD/190 (PM) com a base mestra será habilitado após a consolidação da auditoria IML × Controle Morte.
+                </p>
+                <span className="mt-4 text-[9px] bg-white/5 border border-white/10 px-3 py-1 rounded-full text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <Compass className="w-3 h-3" />
+                  Em Planejamento
+                </span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

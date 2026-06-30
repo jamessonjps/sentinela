@@ -15,23 +15,23 @@ export function IMLQualityCard({ corposSemDo, totalMvi }: IMLQualityCardProps) {
     : 0;
 
   return (
-    <div className="glass-card p-5 w-full rounded-2xl relative overflow-hidden flex flex-col justify-between border border-destructive/20 bg-destructive/5 hover:border-destructive/30 transition-all duration-300">
+    <div className="glass-card p-4 w-full rounded-xl relative overflow-hidden flex flex-col justify-between border border-destructive/20 bg-destructive/5 hover:border-destructive/30 transition-all duration-300">
       {/* Background Glow */}
       <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-destructive/10 blur-2xl"></div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2.5">
           <span className="text-[10px] font-bold uppercase tracking-widest text-destructive flex items-center gap-1.5 bg-destructive/10 px-2 py-0.5 rounded border border-destructive/20">
             <AlertTriangle className="w-3 h-3" />
-            IML - Alerta Forense
+            Polícia Científica - IML
           </span>
           <span className="text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded-md text-muted-foreground font-bold uppercase tracking-wider">
             Fase Futura
           </span>
         </div>
 
-        <div className="flex items-baseline gap-2 mb-1.5">
-          <span className="text-3xl font-extrabold text-white tracking-tight leading-none text-glow">
+        <div className="flex items-baseline gap-2 mb-1">
+          <span className="text-2xl font-extrabold text-white tracking-tight leading-none text-glow">
             {corposSemDo}
           </span>
           <span className="text-xs text-muted-foreground font-semibold">óbitos</span>
@@ -43,7 +43,7 @@ export function IMLQualityCard({ corposSemDo, totalMvi }: IMLQualityCardProps) {
         </p>
       </div>
 
-      <div className="mt-4 pt-3.5 border-t border-white/5">
+      <div className="mt-3 pt-2.5 border-t border-white/5">
         {/* Barra de Progresso Analítica */}
         <div className="flex items-center justify-between text-[9px] text-muted-foreground font-semibold mb-1.5">
           <span>Taxa de Ausência de DO</span>
@@ -57,7 +57,7 @@ export function IMLQualityCard({ corposSemDo, totalMvi }: IMLQualityCardProps) {
             className="h-full bg-destructive rounded-full"
           />
         </div>
-        <div className="mt-3 flex items-center gap-1 text-[9px] text-muted-foreground/80 leading-snug">
+        <div className="mt-2 flex items-center gap-1 text-[9px] text-muted-foreground/80 leading-snug">
           <FileX className="w-3 h-3 text-destructive shrink-0" />
           <span>Fila dedicada para analistas da Polícia Científica / IML.</span>
         </div>
