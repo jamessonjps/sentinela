@@ -155,7 +155,7 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
       )}
 
       {/* Linha do Tempo Física */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide py-2 pr-1 relative">
+      <div className="flex-1 overflow-y-auto custom-scrollbar py-2 pr-1 relative">
         <div className="absolute left-[17px] top-6 bottom-6 w-[2px] bg-white/5 rounded-full" />
 
         <div className="space-y-5">

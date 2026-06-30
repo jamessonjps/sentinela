@@ -210,7 +210,7 @@ export function RadarCAD({ onStatusChanged }: RadarCADProps) {
         </div>
 
         {/* Lista de Registros */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2.5 max-h-[550px]">
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 max-h-[550px]">
           {loading ? (
             <div className="h-64 flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -372,7 +372,7 @@ export function RadarCAD({ onStatusChanged }: RadarCADProps) {
                 <span className="text-[9px] text-muted-foreground">Gold Standard MVI</span>
               </div>
 
-              <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2 pr-1">
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
                 {loadingCorrelations ? (
                   <div className="h-32 flex items-center justify-center">
                     <RefreshCw className="w-6 h-6 text-primary animate-spin" />

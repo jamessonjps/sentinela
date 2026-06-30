@@ -100,7 +100,7 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
       </div>
 
       {/* Lista de Alertas */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2.5 pr-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
         {loading ? (
           <div className="h-40 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -132,7 +132,7 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {/* Indicador de Prioridade */}
                     <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
-                      alert.prioridade === 3 ? "bg-destructive shadow-[0_0_10px_rgba(239,68,68,0.8)]" :
+                      alert.prioridade >= 3 ? "bg-destructive shadow-[0_0_10px_rgba(239,68,68,0.8)]" :
                       alert.prioridade === 2 ? "bg-warning shadow-[0_0_10px_rgba(245,158,11,0.8)]" :
                       "bg-success shadow-[0_0_10px_rgba(16,185,129,0.8)]"
                     }`} />

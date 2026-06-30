@@ -76,28 +76,45 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 flex flex-col gap-6 max-w-[1920px] mx-auto">
+    <div className="min-h-screen p-4 md:p-6 lg:p-8 flex flex-col gap-5 max-w-[1920px] mx-auto">
       {/* Header Premium */}
       <header className="glass-panel px-6 py-4 rounded-2xl flex items-center justify-between sticky top-4 z-50 transition-all">
         <div className="flex items-center gap-4">
           <motion.div 
             whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-4"
           >
+            {/* Bloco Logomarca NEAC (Imagem Limpa + Subtexto HTML para máxima nitidez) */}
+            <div className="flex flex-col items-center gap-1">
+              <img 
+                src="/logo_neac_white.png" 
+                alt="Logo NEAC" 
+                className="h-7 w-auto opacity-95 filter drop-shadow-[0_0_6px_rgba(59,130,246,0.3)]" 
+              />
+              <span className="text-[6px] text-white/50 font-bold uppercase tracking-wider text-center block max-w-[150px] leading-tight">
+                NÚCLEO DE ESTATÍSTICA E ANÁLISE CRIMINAL
+              </span>
+            </div>
+
+            {/* Divisor */}
+            <div className="w-[1px] h-10 bg-white/10 mx-1 hidden sm:block" />
+
+            {/* Brasão de Alagoas */}
             <img 
-              src="/logo_neac_white.png" 
-              alt="Logo NEAC" 
-              className="h-10 w-auto opacity-95 filter drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]" 
+              src="/brasao_alagoas.png" 
+              alt="Brasão de Alagoas" 
+              className="h-9 w-auto opacity-90 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] hidden sm:block" 
             />
-            <div className="w-[1px] h-8 bg-white/10 mx-2 hidden sm:block" />
+
+            {/* Título do Sistema */}
             <div className="hidden sm:block">
-              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5 leading-none">
                 SENTINELA 
                 <span className="px-1.5 py-0.5 rounded bg-accent/85 text-[8px] text-primary font-bold uppercase tracking-widest border border-primary/20 shadow-[0_0_10px_rgba(59,130,246,0.15)]">
                   CHENEAC
                 </span>
               </h1>
-              <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">SSP - Estado de Alagoas</p>
+              <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider mt-1.5">SSP - Estado de Alagoas</p>
             </div>
           </motion.div>
         </div>
@@ -170,7 +187,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Conteúdo das Abas com Animação */}
-      <main className="flex-1 lg:h-[calc(100vh-280px)] lg:min-h-[650px] flex flex-col">
+      <main className="flex-1 lg:h-[680px] flex flex-col">
         <AnimatePresence mode="wait">
           {activeTab === "auditoria" ? (
             <motion.div

@@ -150,7 +150,7 @@ def seed_alertas(session, csv_path):
         if row.get('ALERTA_NIC_FALTANTE') == 'SIM':
             alertas_db.append(SentinelaFilaAlertas(
                 ID_CONTROLE_MORTE=id_cm, NIC=nic, BO_PC=bo_pc, CAD=cad,
-                STATUS="Novo", PRIORIDADE=2,
+                STATUS="Novo", PRIORIDADE=4,
                 TIPO_ALERTA="Caso MVI sem registro de NIC no IML"
             ))
             
@@ -158,7 +158,7 @@ def seed_alertas(session, csv_path):
         if row.get('ALERTA_NOME_DIVERGENTE') == 'VERIFICAR':
             alertas_db.append(SentinelaFilaAlertas(
                 ID_CONTROLE_MORTE=id_cm, NIC=nic, BO_PC=bo_pc, CAD=cad,
-                STATUS="Novo", PRIORIDADE=2,
+                STATUS="Novo", PRIORIDADE=4,
                 TIPO_ALERTA="Divergência de Nome da Vítima (IML)"
             ))
     
