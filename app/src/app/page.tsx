@@ -188,7 +188,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Conteúdo das Abas com Animação */}
-      <main className="flex-1 min-h-0 flex flex-col">
+      <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === "auditoria" ? (
             <motion.div
@@ -197,10 +197,10 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full flex-1"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0 overflow-hidden"
             >
               {/* Fila de Auditoria */}
-              <div className="lg:col-span-4 h-full">
+              <div className="lg:col-span-4 min-h-0 overflow-hidden">
                 <AlertQueue 
                   onSelectAlert={setSelectedAlert} 
                   selectedAlertId={selectedAlert?.id_alerta} 
@@ -208,7 +208,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Detalhe do Caso / Timeline */}
-              <div className="lg:col-span-5 h-full">
+              <div className="lg:col-span-5 min-h-0 overflow-hidden">
                 <CaseTimeline 
                   selectedAlert={selectedAlert} 
                   onStatusChanged={handleAlertStatusChanged}
@@ -216,7 +216,7 @@ export default function DashboardPage() {
               </div>
 
               {/* IML & DAAS Quality Cards */}
-              <div className="lg:col-span-3 h-full flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
+              <div className="lg:col-span-3 min-h-0 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
                 <IMLQualityCard 
                   corposSemDo={stats.corpos_sem_do || 0} 
                   totalMvi={stats.mvi_total || 0} 

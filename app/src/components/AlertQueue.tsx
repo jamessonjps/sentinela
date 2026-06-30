@@ -56,7 +56,7 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
   });
 
   return (
-    <div className="glass-card p-5 w-full h-full flex flex-col rounded-2xl">
+    <div className="glass-card p-5 w-full h-full min-h-0 flex flex-col rounded-2xl overflow-hidden">
       {/* Header com Filtros Principais */}
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex items-center justify-between">
