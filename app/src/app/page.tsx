@@ -1,0 +1,224 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield, Search, Bell, Menu, ShieldAlert, Compass, Eye, CheckCircle2 } from "lucide-react";
+import { AlertQueue } from "@/components/AlertQueue";
+import { CaseTimeline } from "@/components/CaseTimeline";
+import { IMLQualityCard } from "@/components/IMLQualityCard";
+import { DashboardStats } from "@/components/DashboardStats";
+import { RadarCAD } from "@/components/RadarCAD";
+
+const API_BASE_URL = typeof window !== "undefined" 
+  ? (window.location.hostname === "localhost" ? "http://localhost:8000" : "") 
+  : "http://localhost:8000";
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState<"auditoria" | "radar">("auditoria");
+  const [selectedAlert, setSelectedAlert] = useState<any>(null);
+  
+  const [stats, setStats] = useState<any>({
+    status: { novos: 0, em_tratativa: 0, resolvidos: 0, total: 0 },
+    prioridade: { baixa: 0, media: 0, alta: 0 },
+    mvi_total: 0,
+    corpos_sem_do: 0
+  });
+
+  const [radarStats, setRadarStats] = useState<any>({
+    total: 0,
+    status: { novos: 0, validados: 0, descartados: 0 },
+    prioridade: { alta: 0, media: 0, baixa: 0 }
+  });
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/alertas/stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar estatísticas de auditoria:", err);
+    }
+  };
+
+  const fetchRadarStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/radar/stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setRadarStats(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar estatísticas do radar:", err);
+    }
+  };
+
+  const handleAlertStatusChanged = () => {
+    fetchStats();
+    if (selectedAlert) {
+      setSelectedAlert((prev: any) => prev ? { ...prev, status_alerta: "Resolvido" } : null);
+    }
+  };
+
+  const handleRadarStatusChanged = () => {
+    fetchRadarStats();
+  };
+
+  useEffect(() => {
+    fetchStats();
+    fetchRadarStats();
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchRadarStats();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-screen p-4 md:p-6 lg:p-8 flex flex-col gap-6 max-w-[1920px] mx-auto">
+      {/* Header Premium */}
+      <header className="glass-panel px-6 py-4 rounded-2xl flex items-center justify-between sticky top-4 z-50 transition-all">
+        <div className="flex items-center gap-4">
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            className="flex items-center gap-3"
+          >
+            <img 
+              src="/logo_neac_white.png" 
+              alt="Logo NEAC" 
+              className="h-10 w-auto opacity-95 filter drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]" 
+            />
+            <div className="w-[1px] h-8 bg-white/10 mx-2 hidden sm:block" />
+            <div className="hidden sm:block">
+              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+                SENTINELA 
+                <span className="px-1.5 py-0.5 rounded bg-accent/85 text-[8px] text-primary font-bold uppercase tracking-widest border border-primary/20 shadow-[0_0_10px_rgba(59,130,246,0.15)]">
+                  CHENEAC
+                </span>
+              </h1>
+              <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">SSP - Estado de Alagoas</p>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="flex items-center gap-5">
+          <div className="relative hidden md:block group">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Pesquisar boletim, CAD ou NIC..." 
+              className="glass-button pl-10 pr-4 py-2.5 rounded-xl text-xs w-72 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all bg-black/20"
+            />
+          </div>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="glass-button w-11 h-11 rounded-xl flex items-center justify-center relative hover:bg-white/10"
+          >
+            <Bell className="w-5 h-5 text-foreground" />
+            <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-destructive rounded-full shadow-[0_0_10px_rgba(220,38,38,1)] border border-background"></span>
+          </motion.button>
+        </div>
+      </header>
+
+      {/* Grid de KPIs Consolidados */}
+      <DashboardStats 
+        stats={{
+          mvi_total: stats.mvi_total || 0,
+          active_alerts: (stats.status?.novos || 0) + (stats.status?.em_tratativa || 0),
+          critical_alerts: stats.prioridade?.alta || 0,
+          resolved_alerts: stats.status?.resolvidos || 0
+        }}
+        radarStats={{
+          total: radarStats.total || 0,
+          novos: radarStats.status?.novos || 0,
+          validados: radarStats.status?.validados || 0,
+          descartados: radarStats.status?.descartados || 0,
+          alta_prioridade: radarStats.prioridade?.alta || 0
+        }}
+        imlSemDo={stats.corpos_sem_do || 0}
+      />
+
+      {/* Seletor de Abas Principal */}
+      <div className="flex justify-start border-b border-white/5 pb-1">
+        <div className="flex gap-2 p-1 bg-black/20 border border-white/5 rounded-xl text-xs font-bold">
+          <button
+            onClick={() => setActiveTab("auditoria")}
+            className={`px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all cursor-pointer ${
+              activeTab === "auditoria"
+                ? "bg-primary/20 text-white border border-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                : "text-muted-foreground hover:text-white"
+            }`}
+          >
+            <ShieldAlert className="w-4 h-4" />
+            Fila de Auditoria (NEAC)
+          </button>
+          
+          <button
+            onClick={() => setActiveTab("radar")}
+            className={`px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all cursor-pointer ${
+              activeTab === "radar"
+                ? "bg-primary/20 text-white border border-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                : "text-muted-foreground hover:text-white"
+            }`}
+          >
+            <Compass className="w-4 h-4" />
+            Radar de Ocorrências (CAD/190)
+          </button>
+        </div>
+      </div>
+
+      {/* Conteúdo das Abas com Animação */}
+      <main className="flex-1 lg:h-[calc(100vh-280px)] lg:min-h-[650px] flex flex-col">
+        <AnimatePresence mode="wait">
+          {activeTab === "auditoria" ? (
+            <motion.div
+              key="auditoria-tab"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full flex-1"
+            >
+              {/* Fila de Auditoria */}
+              <div className="lg:col-span-4 h-full">
+                <AlertQueue 
+                  onSelectAlert={setSelectedAlert} 
+                  selectedAlertId={selectedAlert?.id_alerta} 
+                />
+              </div>
+
+              {/* Detalhe do Caso / Timeline */}
+              <div className="lg:col-span-5 h-full">
+                <CaseTimeline 
+                  selectedAlert={selectedAlert} 
+                  onStatusChanged={handleAlertStatusChanged}
+                />
+              </div>
+
+              {/* IML Quality Card */}
+              <div className="lg:col-span-3 h-full">
+                <IMLQualityCard 
+                  corposSemDo={stats.corpos_sem_do || 0} 
+                  totalMvi={stats.mvi_total || 0} 
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="radar-tab"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="h-full flex-1"
+            >
+              <RadarCAD onStatusChanged={handleRadarStatusChanged} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+}

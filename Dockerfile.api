@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install Oracle Instant Client dependencies
+RUN apt-get update && apt-get install -y libaio1 wget unzip && \
+    wget https://download.oracle.com/otn_software/linux/instantclient/2112000/instantclient-basiclite-linux.x64-21.12.0.0.0dbru.zip && \
+    unzip instantclient-basiclite-linux.x64-21.12.0.0.0dbru.zip -d /opt/oracle && \
+    rm instantclient-basiclite-linux.x64-21.12.0.0.0dbru.zip && \
+    sh -c "echo /opt/oracle/instantclient_21_12 > /etc/ld.so.conf.d/oracle-instantclient.conf" && \
+    ldconfig
+
+COPY requirements.txt .
+# If requirements.txt doesn't exist yet, we create a placeholder logic or ignore
+RUN pip install --no-cache-dir fastapi uvicorn oracledb celery redis pytest
+
+COPY . .
+
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(222, 47%, 5%);
+  --color-foreground: hsl(210, 40%, 98%);
+
+  --color-card: hsl(222, 47%, 7%);
+  --color-card-foreground: hsl(210, 40%, 98%);
+
+  --color-primary: hsl(217, 91%, 60%);
+  --color-primary-foreground: hsl(222, 47%, 5%);
+
+  --color-secondary: hsl(217, 33%, 17%);
+  --color-secondary-foreground: hsl(210, 40%, 98%);
+
+  --color-muted: hsl(217, 33%, 17%);
+  --color-muted-foreground: hsl(215, 20%, 65%);
+
+  --color-accent: hsl(217, 33%, 17%);
+  --color-accent-foreground: hsl(210, 40%, 98%);
+
+  --color-destructive: hsl(350, 89%, 60%);
+  --color-destructive-foreground: hsl(210, 40%, 98%);
+
+  --color-warning: hsl(38, 92%, 50%);
+  --color-warning-foreground: hsl(210, 40%, 98%);
+
+  --color-success: hsl(142, 71%, 45%);
+  --color-success-foreground: hsl(210, 40%, 98%);
+
+  --color-border: hsl(217, 33%, 17%);
+  --color-ring: hsl(217, 91%, 60%);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+    background-size: cover;
+    font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .glass-card {
+    background: rgba(15, 20, 30, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  }
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(30, 35, 45, 0.5) 0%, rgba(15, 20, 30, 0.7) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .glass-button {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+  }
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(135deg, #60a5fa, #a78bfa);
+  }
+  .text-glow {
+    text-shadow: 0 0 20px rgba(96, 165, 250, 0.6);
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

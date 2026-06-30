@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  sentinela-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: sentinela-fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - ORACLE_DB_USER=NEAC
+      - ORACLE_DB_PASS=secret
+      - ORACLE_DB_DSN=localhost:1521/XE
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - sentinela-net
+
+  sentinela-frontend:
+    build:
+      context: ./app
+      dockerfile: ../Dockerfile.frontend
+    container_name: sentinela-nextjs
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - sentinela-api
+    networks:
+      - sentinela-net
+
+  redis:
+    image: redis:alpine
+    container_name: sentinela-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - sentinela-net
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: sentinela-celery
+    command: celery -A agents.celery_app worker --loglevel=info
+    environment:
+      - ORACLE_DB_USER=NEAC
+      - ORACLE_DB_PASS=secret
+      - ORACLE_DB_DSN=localhost:1521/XE
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - sentinela-net
+
+networks:
+  sentinela-net:
+    driver: bridge
