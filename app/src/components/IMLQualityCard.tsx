@@ -25,8 +25,8 @@ export function IMLQualityCard({ corposSemDo, totalMvi }: IMLQualityCardProps) {
             <AlertTriangle className="w-3 h-3" />
             IML - Alerta Forense
           </span>
-          <span className="text-[9px] bg-success/15 border border-success/30 px-2 py-0.5 rounded-md text-success font-bold uppercase tracking-wider">
-            Ativo / Inicial
+          <span className="text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded-md text-muted-foreground font-bold uppercase tracking-wider">
+            Fase Futura
           </span>
         </div>
 
