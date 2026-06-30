@@ -75,7 +75,7 @@ export function DashboardStats({ stats, radarStats, imlSemDo }: DashboardStatsPr
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.08 }}
             whileHover={{ y: -3, transition: { duration: 0.2 } }}
-            className={`glass-card p-5 rounded-2xl flex flex-col justify-between border ${card.borderColor} relative overflow-hidden`}
+            className={`glass-card p-3.5 rounded-xl flex flex-col justify-between border ${card.borderColor} relative overflow-hidden`}
             style={{
               boxShadow: `0 4px 30px rgba(0, 0, 0, 0.2), inset 0 0 20px ${card.bgGlow}`
             }}
@@ -91,16 +91,16 @@ export function DashboardStats({ stats, radarStats, imlSemDo }: DashboardStatsPr
                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                   {card.title}
                 </span>
-                <h3 className="text-2xl font-black text-white mt-1.5 tracking-tight text-glow">
+                <h3 className="text-xl font-black text-white mt-0.5 tracking-tight text-glow">
                   {card.value}
                 </h3>
               </div>
-              <div className={`p-2.5 rounded-xl bg-white/5 border border-white/10 ${card.color}`}>
-                <Icon className="w-5 h-5" />
+              <div className={`p-2 rounded-lg bg-white/5 border border-white/10 ${card.color}`}>
+                <Icon className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[10px]">
+            <div className="mt-2.5 pt-2 border-t border-white/5 flex items-center justify-between text-[9px]">
               <span className="text-muted-foreground font-medium">
                 {card.description}
               </span>

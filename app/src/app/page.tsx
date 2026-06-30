@@ -6,6 +6,7 @@ import { Shield, Search, Bell, Menu, ShieldAlert, Compass, Eye, CheckCircle2 } f
 import { AlertQueue } from "@/components/AlertQueue";
 import { CaseTimeline } from "@/components/CaseTimeline";
 import { IMLQualityCard } from "@/components/IMLQualityCard";
+import { DAASQualityCard } from "@/components/DAASQualityCard";
 import { DashboardStats } from "@/components/DashboardStats";
 import { RadarCAD } from "@/components/RadarCAD";
 
@@ -76,7 +77,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 flex flex-col gap-5 max-w-[1920px] mx-auto">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen p-4 lg:p-5 flex flex-col gap-4 max-w-[1920px] mx-auto lg:overflow-hidden">
       {/* Header Premium */}
       <header className="glass-panel px-6 py-4 rounded-2xl flex items-center justify-between sticky top-4 z-50 transition-all">
         <div className="flex items-center gap-4">
@@ -187,7 +188,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Conteúdo das Abas com Animação */}
-      <main className="flex-1 lg:h-[680px] flex flex-col">
+      <main className="flex-1 min-h-0 flex flex-col">
         <AnimatePresence mode="wait">
           {activeTab === "auditoria" ? (
             <motion.div
@@ -214,11 +215,15 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* IML Quality Card */}
-              <div className="lg:col-span-3 h-full">
+              {/* IML & DAAS Quality Cards */}
+              <div className="lg:col-span-3 h-full flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
                 <IMLQualityCard 
                   corposSemDo={stats.corpos_sem_do || 0} 
                   totalMvi={stats.mvi_total || 0} 
+                />
+                <DAASQualityCard 
+                  boInexistenteCount={21}
+                  totalMvi={stats.mvi_total || 0}
                 />
               </div>
             </motion.div>
