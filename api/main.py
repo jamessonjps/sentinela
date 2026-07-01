@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import alertas, cientifico, radar, reconciliacao
+from .routes import alertas, cientifico, radar, reconciliacao, analise
 import uvicorn
 
 
@@ -30,6 +30,8 @@ app.include_router(alertas.router, prefix="/api/v1/alertas", tags=["Alertas"])
 app.include_router(cientifico.router, prefix="/api/v1/cientifico", tags=["Científico"])
 app.include_router(radar.router, prefix="/api/v1/radar", tags=["Radar CAD"])
 app.include_router(reconciliacao.router, prefix="/api/v1/reconciliacao", tags=["Reconciliação"])
+app.include_router(analise.router, prefix="/api/v1/analise", tags=["Análise & Operações"])
+
 
 
 @app.get("/health", tags=["System"])

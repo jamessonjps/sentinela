@@ -1,13 +1,18 @@
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Search, Bell, ShieldAlert, Compass, Lock } from "lucide-react";
+import { Search, Bell, ShieldAlert, Compass, Lock, Activity, ClipboardList, TrendingUp, X, Check } from "lucide-react";
 import { AlertQueue } from "@/components/AlertQueue";
 import { CaseTimeline } from "@/components/CaseTimeline";
 import { SourceQualityCard } from "@/components/ui/SourceQualityCard";
 import { DashboardStats } from "@/components/DashboardStats";
+
+// Importação dos novos componentes operacionais do SENTINELA
+import { WatchlistPanel } from "@/components/WatchlistPanel";
+import { EvolutionsQueue } from "@/components/EvolutionsQueue";
+import { IMLNotificationFeed } from "@/components/IMLNotificationFeed";
 
 // Carregamento dinâmico para evitar problemas de SSR com o Leaflet
 const CrimeMap = dynamic(() => import("@/components/CrimeMap"), { ssr: false });
@@ -56,8 +61,17 @@ interface RadarStatsData {
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"auditoria" | "radar">("auditoria");
+  const [subTab, setSubTab] = useState<"alertas" | "watchlist" | "evolucoes">("alertas");
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
+  // Estados para o Modal de Proposta de Evolução
+  const [proposeModalOpen, setProposeModalOpen] = useState(false);
+  const [selectedWatchlistItem, setSelectedWatchlistItem] = useState<any | null>(null);
+  const [proposeMotivo, setProposeMotivo] = useState("");
+  const [proposeAutor, setProposeAutor] = useState("Thais Aline");
+  const [submittingPropose, setSubmittingPropose] = useState(false);
+
   const [stats, setStats] = useState<DashboardStatsData>({
     status: { novos: 0, em_tratativa: 0, resolvidos: 0, total: 0 },
     prioridade: { baixa: 0, media: 0, alta: 0 },
@@ -97,8 +111,45 @@ export default function DashboardPage() {
 
   const handleAlertStatusChanged = () => {
     fetchStats();
+    setRefreshTrigger(prev => prev + 1);
     if (selectedAlert) {
       setSelectedAlert((prev) => prev ? { ...prev, status_alerta: "Resolvido" } : null);
+    }
+  };
+
+  const handleProposeEvolucaoOpen = (item: any) => {
+    setSelectedWatchlistItem(item);
+    setProposeMotivo(`Confirmada correspondência probabilística no IML com score de ${item.suspeita_evolucao?.score_similaridade}% sob o NIC ${item.suspeita_evolucao?.nic}.`);
+    setProposeModalOpen(true);
+  };
+
+  const handleSubmitPropose = async () => {
+    if (!selectedWatchlistItem) return;
+    setSubmittingPropose(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/analise/evolucoes-pendentes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_controle_morte: selectedWatchlistItem.id_controle_morte,
+          nic_iml: selectedWatchlistItem.suspeita_evolucao?.nic,
+          bo_pc: selectedWatchlistItem.suspeita_evolucao?.bo_pc || selectedWatchlistItem.bo_pc,
+          motivo: proposeMotivo,
+          autor: proposeAutor
+        })
+      });
+      if (res.ok) {
+        setProposeModalOpen(false);
+        setRefreshTrigger(prev => prev + 1);
+        fetchStats();
+      } else {
+        const err = await res.json();
+        alert(err.detail || "Erro ao registrar proposta.");
+      }
+    } catch (err) {
+      console.error("Erro ao enviar proposta de evolução:", err);
+    } finally {
+      setSubmittingPropose(false);
     }
   };
 
@@ -117,7 +168,6 @@ export default function DashboardPage() {
       {/* Header Compacto e Sólido (Console de Inteligência) */}
       <header className="bg-surface border border-border px-5 py-3 rounded-md flex items-center justify-between z-50 shrink-0">
         <div className="flex items-center gap-4">
-          {/* 1. Identidade Institucional (Brasão + Hierarquia Governamental) */}
           <div className="flex items-center gap-3 shrink-0">
             <img 
               src="/brasao_alagoas.png" 
@@ -137,10 +187,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Divisor vertical sutil */}
           <div className="w-[1px] h-8 bg-border hidden lg:block shrink-0" />
 
-          {/* 2. Nome do Sistema e Badge Operacional */}
           <div className="hidden sm:flex items-center gap-2 shrink-0">
             <h1 className="text-sm font-bold text-paper tracking-tight font-display uppercase leading-none">
               SENTINELA
@@ -151,7 +199,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 3. Ações e Logo NEAC à Direita */}
         <div className="flex items-center gap-4">
           <div className="relative hidden xl:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-dim" />
@@ -162,7 +209,6 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Logomarca NEAC Branding */}
           <div className="flex items-center shrink-0">
             <img 
               src="/logo_neac_white.png" 
@@ -198,9 +244,10 @@ export default function DashboardPage() {
         imlSemDo={stats.corpos_sem_do || 0}
       />
 
-      {/* Seletor de Abas Sólido */}
-      <div className="flex justify-start shrink-0">
-        <div className="flex gap-1.5 p-0.5 bg-surface border border-border rounded-sm text-xs font-semibold">
+      {/* Seletor de Abas Principais e Sub-Abas Operacionais */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 bg-surface border border-border p-1.5 rounded-sm">
+        {/* Abas Principais */}
+        <div className="flex gap-1">
           <button
             onClick={() => setActiveTab("auditoria")}
             className={`px-3 py-1 rounded-sm flex items-center gap-1.5 transition-all cursor-pointer text-[10px] font-bold uppercase tracking-wider ${
@@ -210,7 +257,7 @@ export default function DashboardPage() {
             }`}
           >
             <ShieldAlert className="w-3.5 h-3.5 text-focus" />
-            Fila de Auditoria (NEAC)
+            Console de Auditoria (NEAC)
           </button>
           
           <button
@@ -229,55 +276,131 @@ export default function DashboardPage() {
             </span>
           </button>
         </div>
+
+        {/* Sub-Abas Operacionais da Auditoria */}
+        {activeTab === "auditoria" && (
+          <div className="flex gap-1 p-0.5 bg-ink/60 border border-border/40 rounded-sm">
+            <button
+              onClick={() => setSubTab("alertas")}
+              className={`px-2.5 py-1 rounded-sm text-[9px] font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 ${
+                subTab === "alertas" ? "bg-focus text-ink font-extrabold" : "text-slate hover:text-paper"
+              }`}
+            >
+              <Activity className="w-3 h-3" />
+              Fila de Alertas
+            </button>
+            <button
+              onClick={() => setSubTab("watchlist")}
+              className={`px-2.5 py-1 rounded-sm text-[9px] font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 ${
+                subTab === "watchlist" ? "bg-warning text-ink font-extrabold" : "text-slate hover:text-paper"
+              }`}
+            >
+              <TrendingUp className="w-3 h-3" />
+              Watchlist de Tentativas
+            </button>
+            <button
+              onClick={() => setSubTab("evolucoes")}
+              className={`px-2.5 py-1 rounded-sm text-[9px] font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 ${
+                subTab === "evolucoes" ? "bg-focus-bg text-focus border border-focus/30 font-extrabold" : "text-slate hover:text-paper"
+              }`}
+            >
+              <ClipboardList className="w-3 h-3" />
+              Evoluções Pendentes
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Conteúdo das Abas */}
       <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {activeTab === "auditoria" ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 overflow-hidden">
-            {/* Fila de Auditoria */}
-            <div className="lg:col-span-4 min-h-0 overflow-hidden flex flex-col">
-              <AlertQueue 
-                onSelectAlert={setSelectedAlert} 
-                selectedAlertId={selectedAlert?.id_alerta} 
-              />
-            </div>
+            
+            {/* Visualização de acordo com a Sub-Aba selecionada */}
+            {subTab === "alertas" && (
+              <>
+                {/* Fila de Alertas */}
+                <div className="lg:col-span-4 min-h-0 overflow-hidden flex flex-col">
+                  <AlertQueue 
+                    onSelectAlert={setSelectedAlert} 
+                    selectedAlertId={selectedAlert?.id_alerta} 
+                  />
+                </div>
 
-            {/* Detalhe do Caso / Timeline */}
-            <div className="lg:col-span-4 min-h-0 overflow-hidden flex flex-col">
-              <CaseTimeline 
-                selectedAlert={selectedAlert} 
-                onStatusChanged={handleAlertStatusChanged}
-              />
-            </div>
+                {/* Detalhe do Caso / Timeline */}
+                <div className="lg:col-span-4 min-h-0 overflow-hidden flex flex-col">
+                  <CaseTimeline 
+                    selectedAlert={selectedAlert} 
+                    onStatusChanged={handleAlertStatusChanged}
+                  />
+                </div>
+              </>
+            )}
 
-            {/* Mapa e Painéis de Qualidade de Dados */}
+            {subTab === "watchlist" && (
+              <>
+                {/* Watchlist Panel */}
+                <div className="lg:col-span-4 min-h-0 overflow-hidden flex flex-col">
+                  <WatchlistPanel 
+                    onProposeEvolucao={handleProposeEvolucaoOpen}
+                    onRefreshTrigger={refreshTrigger}
+                  />
+                </div>
+
+                {/* Linha do tempo associada se houver seleção */}
+                <div className="lg:col-span-4 min-h-0 overflow-hidden flex flex-col">
+                  <CaseTimeline 
+                    selectedAlert={selectedAlert} 
+                    onStatusChanged={handleAlertStatusChanged}
+                  />
+                </div>
+              </>
+            )}
+
+            {subTab === "evolucoes" && (
+              <div className="lg:col-span-8 min-h-0 overflow-hidden flex flex-col">
+                <EvolutionsQueue 
+                  onRefreshTrigger={refreshTrigger}
+                  onEvolutionProcessed={() => setRefreshTrigger(prev => prev + 1)}
+                />
+              </div>
+            )}
+
+            {/* Painel da Direita (Mapa, Notificações IML e Qualidade) */}
             <div className="lg:col-span-4 min-h-0 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
-              <div className="h-[280px] shrink-0">
+              <div className="h-[240px] shrink-0">
                 <CrimeMap selectedAlert={selectedAlert} />
               </div>
+
+              {/* Feed de Notificações do IML */}
+              <IMLNotificationFeed 
+                onRefreshTrigger={refreshTrigger}
+                onNotificationRead={() => setRefreshTrigger(prev => prev + 1)}
+              />
               
-              <SourceQualityCard 
-                fonte="NEAC"
-                percentualPreenchido={stats.mvi_total > 0 ? parseFloat((100 - (((stats.status?.novos || 0) + (stats.status?.em_tratativa || 0)) / stats.mvi_total) * 100).toFixed(1)) : 100}
-                metricValue={(stats.status?.novos || 0) + (stats.status?.em_tratativa || 0)}
-                metricLabel="divergências"
-                camposFaltantes={["NOME_VITIMA", "BO_PC", "CAD"]}
-              />
-              <SourceQualityCard 
-                fonte="IML"
-                percentualPreenchido={stats.mvi_total > 0 ? parseFloat((100 - ((stats.corpos_sem_do || 0) / stats.mvi_total) * 100).toFixed(1)) : 100}
-                metricValue={stats.corpos_sem_do || 0}
-                metricLabel="óbitos sem DO"
-                camposFaltantes={["NR_DECLARACAO_OBITO"]}
-              />
-              <SourceQualityCard 
-                fonte="DAAS"
-                percentualPreenchido={stats.mvi_total > 0 ? parseFloat((100 - (21 / stats.mvi_total) * 100).toFixed(1)) : 100}
-                metricValue={21}
-                metricLabel="casos sem BO"
-                camposFaltantes={["BO_PC", "NATUREZA_OCORRENCIA"]}
-              />
+              <div className="space-y-3 shrink-0">
+                <SourceQualityCard 
+                  fonte="NEAC"
+                  percentualPreenchido={stats.mvi_total > 0 ? parseFloat((100 - (((stats.status?.novos || 0) + (stats.status?.em_tratativa || 0)) / stats.mvi_total) * 100).toFixed(1)) : 100}
+                  metricValue={(stats.status?.novos || 0) + (stats.status?.em_tratativa || 0)}
+                  metricLabel="divergências"
+                  camposFaltantes={["NOME_VITIMA", "BO_PC", "CAD"]}
+                />
+                <SourceQualityCard 
+                  fonte="IML"
+                  percentualPreenchido={stats.mvi_total > 0 ? parseFloat((100 - ((stats.corpos_sem_do || 0) / stats.mvi_total) * 100).toFixed(1)) : 100}
+                  metricValue={stats.corpos_sem_do || 0}
+                  metricLabel="óbitos sem DO"
+                  camposFaltantes={["NR_DECLARACAO_OBITO"]}
+                />
+                <SourceQualityCard 
+                  fonte="DAAS"
+                  percentualPreenchido={stats.mvi_total > 0 ? parseFloat((100 - (21 / stats.mvi_total) * 100).toFixed(1)) : 100}
+                  metricValue={21}
+                  metricLabel="casos sem BO"
+                  camposFaltantes={["BO_PC", "NATUREZA_OCORRENCIA"]}
+                />
+              </div>
             </div>
           </div>
         ) : (
@@ -300,6 +423,103 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Modal / Diálogo de Proposta de Evolução */}
+      {proposeModalOpen && selectedWatchlistItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 backdrop-blur-sm p-4">
+          <div className="bg-surface border border-border w-full max-w-lg rounded-md overflow-hidden flex flex-col shadow-2xl">
+            <div className="px-4 py-3 border-b border-border bg-surface-raised flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-warning" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-paper font-display">
+                  Propor Evolução a Óbito
+                </h3>
+              </div>
+              <button 
+                onClick={() => setProposeModalOpen(false)}
+                className="text-slate hover:text-paper cursor-pointer"
+              >
+                <X className="w-4.5 h-4.5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4 text-xs">
+              <div className="space-y-1">
+                <span className="text-[10px] text-slate uppercase tracking-wider font-mono block">Vítima (Tentativa Mestra)</span>
+                <span className="text-paper font-bold text-sm">{selectedWatchlistItem.nome_vitima}</span>
+                <span className="text-slate font-mono block">ID Controle Morte: {selectedWatchlistItem.id_controle_morte} | Fato: {selectedWatchlistItem.data_hora_fato}</span>
+              </div>
+
+              <div className="p-3 rounded-sm border border-critical/30 bg-critical-bg/5 space-y-1 font-mono text-[10px]">
+                <span className="text-critical font-bold uppercase tracking-wider block">Óbito Correspondente no IML</span>
+                <div className="text-paper">
+                  Nome IML: <span className="font-bold">{selectedWatchlistItem.suspeita_evolucao?.nome_vitima_iml || "Não Identificado"}</span>
+                </div>
+                <div className="text-slate">
+                  NIC: <span className="text-focus font-bold">{selectedWatchlistItem.suspeita_evolucao?.nic}</span>
+                  {selectedWatchlistItem.suspeita_evolucao?.data_entrada_iml && ` | Entrada: ${selectedWatchlistItem.suspeita_evolucao.data_entrada_iml}`}
+                </div>
+                {selectedWatchlistItem.suspeita_evolucao?.tipo_morte && (
+                  <div className="text-slate">Causa Mortis IML: {selectedWatchlistItem.suspeita_evolucao.tipo_morte}</div>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate uppercase tracking-wider font-mono block">Motivação / Observações do Analista</label>
+                <textarea
+                  value={proposeMotivo}
+                  onChange={(e) => setProposeMotivo(e.target.value)}
+                  rows={4}
+                  className="w-full bg-ink border border-border rounded-sm p-2 text-paper placeholder:text-slate-dim focus:outline-none focus:border-focus font-mono"
+                  placeholder="Justifique a correlação para o supervisor..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate uppercase tracking-wider font-mono block">Analista Proponente</label>
+                  <select
+                    value={proposeAutor}
+                    onChange={(e) => setProposeAutor(e.target.value)}
+                    className="w-full bg-ink border border-border rounded-sm p-2 text-paper focus:outline-none focus:border-focus"
+                  >
+                    <option value="Thais Aline">Thais Aline</option>
+                    <option value="Sérgio NEAC">Sérgio NEAC</option>
+                    <option value="Melissa Neac">Melissa Neac</option>
+                    <option value="Laís Policarpto">Laís Policarpto</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate uppercase tracking-wider font-mono block">NIC a Vincular</label>
+                  <input
+                    type="text"
+                    value={selectedWatchlistItem.suspeita_evolucao?.nic || ""}
+                    disabled
+                    className="w-full bg-ink border border-border rounded-sm p-2 text-slate-dim focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 py-3 border-t border-border bg-surface-raised flex items-center justify-end gap-2">
+              <button
+                onClick={() => setProposeModalOpen(false)}
+                className="px-3 py-1.5 rounded-sm bg-ink border border-border text-slate hover:text-paper hover:bg-surface-raised text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSubmitPropose}
+                disabled={submittingPropose}
+                className="px-4 py-1.5 rounded-sm bg-critical text-paper text-[10px] font-bold uppercase tracking-wider hover:bg-critical/85 disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-1 border border-critical/30"
+              >
+                <Check className="w-3.5 h-3.5" />
+                {submittingPropose ? "Propondo..." : "Propor Evolução"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

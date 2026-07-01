@@ -161,30 +161,45 @@ class IMLComparator:
     def detect_evolution_attempts(self, session: Session) -> int:
         """
         Procura por novas entradas no IML que possam ser evoluções de tentativas registradas na Mestra.
-        Compara data do fato com data de óbito ou entrada no IML com uma janela estendida de 30 dias.
+        Compara data do fato com data de óbito ou entrada no IML com uma janela estendida de até 540 dias.
+        Aplica mitigações de performance:
+        1. Limite temporal de 18 meses (540 dias) para monitoramento de tentativas ativas.
+        2. Pre-filtering rápido por primeira letra de nome antes do cálculo Jaro-Winkler.
+        3. Integração com a tabela de notificações do IML.
         """
         logger.info("Iniciando detecção de evolução de tentativas para óbito no IML...")
         
-        # 1. Obter tentativas ativas (sem NIC) da Mestra
-        tentativas = session.query(VwSentinelaCasoCompleto).filter(
+        # Obter data limite de 18 meses (540 dias) para monitoramento
+        limite_monitoramento = datetime.now() - timedelta(days=540)
+        
+        # 1. Obter tentativas ativas da Mestra
+        todas_tentativas = session.query(VwSentinelaCasoCompleto).filter(
             VwSentinelaCasoCompleto.SUBJETIVIDADE.ilike("%TENTATIVA%"),
             VwSentinelaCasoCompleto.NIC.is_(None),
             VwSentinelaCasoCompleto.NIC_IML.is_(None)
         ).all()
         
+        # Filtrar tentativas ativas nos últimos 18 meses
+        tentativas = []
+        for t in todas_tentativas:
+            dt_tent = parse_date(t.DATA_HORA_FATO)
+            if dt_tent and dt_tent >= limite_monitoramento:
+                tentativas.append(t)
+                
         if not tentativas:
-            logger.info("Nenhuma tentativa ativa (sem NIC) localizada na Controle Morte.")
+            logger.info("Nenhuma tentativa ativa recente (nos últimos 18 meses) localizada na Controle Morte.")
             return 0
             
-        logger.info(f"Localizadas {len(tentativas)} tentativas ativas para análise de cruzamento.")
+        logger.info(f"Localizadas {len(tentativas)} tentativas ativas recentes para análise.")
         
-        # 2. Obter todas as entradas do IML (que possuem NIC no IML mas ID_CMORTE pode estar desvinculado)
-        # Na nossa tabela consolidada, representamos corpos no IML que não estão na Controle Morte 
-        # como registros onde ID_CONTROLE_MORTE pode ser de um caso MVI ou de ocorrências soltas.
-        # No local dev, simulamos isso buscando registros no banco onde o NIC_IML é válido.
+        # 2. Obter todas as entradas do IML
         corpos_iml = session.query(VwSentinelaCasoCompleto).filter(
             VwSentinelaCasoCompleto.NIC_IML.isnot(None)
         ).all()
+        
+        # Registrar notificações para novas entradas do IML
+        # Buscaremos se existem novos corpos cadastrados
+        from api.models import SentinelaNotificacaoIML
         
         evolucao_alertas = 0
         
@@ -194,23 +209,26 @@ class IMLComparator:
                 continue
                 
             for corpo in corpos_iml:
-                # Pula se for o próprio registro já associado de alguma forma (mas tent não tem NIC, então são distintos)
                 if tent.ID_CONTROLE_MORTE == corpo.ID_CONTROLE_MORTE:
                     continue
                     
-                # 1. Comparação de datas (DAT_OBITO ou NASCIMENTO como proxy de tempo de entrada)
-                # No seeder, mapeamos a entrada como NASCIMENTO/NASC_VITIMA ou DATA_HORA_FATO.
-                # Vamos buscar a data no corpo.
-                dt_corpo = parse_date(corpo.DATA_HORA_FATO) # entrada no IML simulada
+                dt_corpo = parse_date(corpo.DATA_HORA_FATO) or parse_date(corpo.IML_ENTRADA)
                 if not dt_corpo:
                     continue
                     
-                # Diferença de dias (janela de 30 dias pós-tentativa)
+                # Diferença de dias (janela estendida de 540 dias pós-tentativa)
                 delta_days = (dt_corpo - dt_tent).days
-                if delta_days < 0 or delta_days > 30:
+                if delta_days < 0 or delta_days > 540:
                     continue
                     
-                # 2. Match por BO_PC ou Nome da Vítima
+                # Mitigação 2: Pre-filtering por primeira letra
+                if tent.NOME_VITIMA and corpo.NOM_VITIMA_IML:
+                    n1 = normalize_text(tent.NOME_VITIMA)
+                    n2 = normalize_text(corpo.NOM_VITIMA_IML)
+                    if n1 and n2 and n1[0] != n2[0]:
+                        continue  # Letras iniciais diferentes, descarta rapidamente
+                
+                # 3. Match por BO_PC ou Nome da Vítima
                 bo_match = (tent.BO_PC and corpo.BO_PC and tent.BO_PC == corpo.BO_PC)
                 
                 name_match = False
@@ -218,7 +236,6 @@ class IMLComparator:
                 if tent.NOME_VITIMA and corpo.NOM_VITIMA_IML:
                     name_match, score = match_names(tent.NOME_VITIMA, corpo.NOM_VITIMA_IML)
                 
-                # Se bater pelo BO ou pelo Nome e estiver dentro da janela temporal, gera suspeita
                 if bo_match or name_match:
                     logger.warning(f"Suspeita detectada: Tentativa ID {tent.ID_CONTROLE_MORTE} pode ter evoluído para óbito. Corpo NIC {corpo.NIC_IML} (Match Score: {score}%)")
                     
@@ -238,6 +255,25 @@ class IMLComparator:
                         bo_pc=tent.BO_PC or corpo.BO_PC,
                         cad=tent.CAD or corpo.CAD
                     )
+                    
+                    # Cria notificação na tabela de notificações do IML
+                    # Apenas se não existir uma notificação similar
+                    notif_existente = session.query(SentinelaNotificacaoIML).filter_by(
+                        NIC=corpo.NIC_IML,
+                        TIPO_MENSAGEM="Nova evolução identificada"
+                    ).first()
+                    
+                    if not notif_existente:
+                        nome_vit = corpo.NOM_VITIMA_IML or tent.NOME_VITIMA
+                        nova_notif = SentinelaNotificacaoIML(
+                            NIC=corpo.NIC_IML,
+                            NOME_VITIMA=nome_vit,
+                            STATUS_IML=corpo.STATUS_IML if hasattr(corpo, 'STATUS_IML') else "Entrada",
+                            TIPO_MENSAGEM="Nova evolução identificada",
+                            LIDO=0
+                        )
+                        session.add(nova_notif)
+                        
                     evolucao_alertas += 1
                     
         session.commit()

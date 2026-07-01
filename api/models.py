@@ -139,3 +139,32 @@ class SentinelaReconciliacaoLog(Base):
     STATUS = Column(String(30), default="Pendente", index=True) # Pendente, Confirmado, Ignorado
     DT_RESOLUCAO = Column(DateTime, nullable=True)
 
+
+class SentinelaEvolucaoPendente(Base):
+    __tablename__ = "SENTINELA_EVOLUCAO_PENDENTE"
+    
+    ID_EVOLUCAO = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    ID_CONTROLE_MORTE = Column(Integer, index=True, nullable=False)
+    NIC_IML = Column(String(100), nullable=True)
+    BO_PC = Column(String(100), nullable=True)
+    DATA_OBITO = Column(DateTime, nullable=True)
+    STATUS = Column(String(30), default="Pendente", index=True) # Pendente, Aprovada, Rejeitada
+    MOTIVO = Column(String(4000), nullable=True)
+    TIPO_EVOLUCAO = Column(String(100), default="Tentativa -> Óbito")
+    AUTOR_PROPOSTA = Column(String(100), nullable=True)
+    DT_CRIACAO = Column(DateTime, default=func.now())
+    DT_ATUALIZACAO = Column(DateTime, default=func.now(), onupdate=func.now())
+
+
+class SentinelaNotificacaoIML(Base):
+    __tablename__ = "SENTINELA_NOTIFICACAO_IML"
+    
+    ID_NOTIFICACAO = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    NIC = Column(String(100), nullable=False, index=True)
+    NOME_VITIMA = Column(String(255), nullable=True)
+    STATUS_IML = Column(String(100), nullable=True)
+    TIPO_MENSAGEM = Column(String(255), nullable=False)
+    DT_EVENTO = Column(DateTime, default=func.now())
+    LIDO = Column(Integer, default=0, index=True) # 0 ou 1
+
+
