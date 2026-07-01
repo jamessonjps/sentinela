@@ -291,3 +291,26 @@ Estes parâmetros devem ser utilizados para **robustecer a busca (query)** na ta
 
 ---
 
+# Fase 9 — Motor de Reconciliação Delta & Redesign UI/UX do Console
+
+## 1. Escopo Técnico da Fase
+Nesta fase, implementamos as duas maiores frentes de otimização de processo do SENTINELA:
+1. **Redesign Visual do Dashboard**: Substituição da estética antiga por um visual sóbrio de **Console de Operações de Inteligência**.
+2. **Motor de Reconciliação Delta**: Agrupamento de agentes comparadores automáticos rodando em lote incremental no backend para auditar divergências de MVI (IML, CAD e PPE).
+
+## 2. Estrutura do Motor de Reconciliação (Backend)
+O motor executa varreduras delta inteligentes nas bases de dados sem sobrecarregar as transações:
+- **`iml_comparator`**: Monitora a evolução de fichas de tentativas registradas anteriormente que evoluíram para óbito no IML dentro de 30 dias.
+- **`cad_comparator`**: Cruza dados textuais e de geolocalização do CAD com o PPE da Polícia Civil, acionando sinalizadores de validação quando o GPS está disponível.
+- **`ppe_comparator`**: Audita reclassificações de natureza de boletins e filtra marcas qualificadoras de crimes (como feminicídio pela Lei Maria da Penha).
+- **`orchestrator`**: Integra os fluxos e alimenta a tabela local `SENTINELA_RECONCILIACAO_LOG`.
+
+## 3. Redesign Visual & Usabilidade (Frontend)
+Substituímos toda a decoração flutuante por um console pragmático de alta densidade:
+* **Fontes Aplicadas**: `IBM Plex Sans Condensed` (títulos em caixa alta), `Inter` (leitura comum) e `IBM Plex Mono` (dados de chaves, NIC, BO e CAD).
+* **Componentes de UI Modulares**: Desenvolvidos os componentes base `Card`, `Badge`, `DataTable`, `StatBlock` e `SourceQualityCard` (unificando o código das qualidades de NEAC, IML e DAAS).
+* **Fluxo Horizontal**: A timeline de integração foi redesenhada horizontalmente, com conectores finos e destaque dinâmico pulsante de óbito no nó do IML.
+* **Mapa de Mancha de Calor**: Migrado para o tema escuro **CartoDB Dark Matter**, mantendo marcadores nítidos e popups integrados.
+* **Fim do Flickering**: Rotina de *polling* aprimorada para atualizar os dados silenciosamente a cada 30 segundos, sem exibir tela de carregamento ou piscar a visualização.
+
+

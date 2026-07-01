@@ -1,11 +1,12 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, AlertTriangle, ShieldAlert } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { Card } from "@/components/ui/Card";
 
 // Corrige problemas de ícones padrão do Leaflet no Next.js
 const createCustomIcon = (color: string = "blue") => {
@@ -23,8 +24,23 @@ const createCustomIcon = (color: string = "blue") => {
   });
 };
 
+interface Alert {
+  id_alerta: number;
+  id_controle_morte: number;
+  tipo_alerta: string;
+  subjetividade: string;
+  prioridade: number;
+  cidade: string;
+  bairro?: string;
+  bo_pc?: string;
+  cad?: string;
+  nic?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 interface CrimeMapProps {
-  selectedAlert: any;
+  selectedAlert: Alert | null;
 }
 
 // Componente utilitário para mover o foco do mapa suavemente
@@ -51,12 +67,12 @@ function MapEffect() {
 
 export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
   const [mounted, setMounted] = useState(false);
-  const [otherPoints, setOtherPoints] = useState<any[]>([]);
+  const [otherPoints, setOtherPoints] = useState<Alert[]>([]);
 
   useEffect(() => {
     setMounted(true);
     
-    // Carrega pontos adicionais da mancha criminal local para preencher o mapa de forma analítica
+    // Carrega pontos da mancha criminal local
     const fetchOtherPoints = async () => {
       try {
         const API_BASE_URL = window.location.hostname === "localhost" ? "http://localhost:8000" : "";
@@ -65,7 +81,7 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
           const data = await res.json();
           // Filtra ocorrências que tenham coordenadas válidas
           const validPoints = (data.data || []).filter(
-            (p: any) => p.latitude && p.longitude && p.latitude !== 0 && p.longitude !== 0
+            (p: Alert) => p.latitude && p.longitude && p.latitude !== 0 && p.longitude !== 0
           );
           setOtherPoints(validPoints);
         }
@@ -78,9 +94,8 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
 
   if (!mounted) {
     return (
-      <div className="glass-panel w-full h-full min-h-[450px] flex items-center justify-center rounded-2xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-background/50 animate-pulse"></div>
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin z-10"></div>
+      <div className="bg-surface border border-border w-full h-full min-h-[280px] flex items-center justify-center rounded-md overflow-hidden relative">
+        <div className="w-6 h-6 border-2 border-focus border-t-transparent rounded-full animate-spin z-10"></div>
       </div>
     );
   }
@@ -95,18 +110,16 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
     selectedAlert.latitude !== 0 && 
     selectedAlert.longitude !== 0;
 
-  const activePosition: [number, number] = hasValidCoordinates
+  const activePosition: [number, number] = hasValidCoordinates && selectedAlert.latitude && selectedAlert.longitude
     ? [selectedAlert.latitude, selectedAlert.longitude]
     : defaultPosition;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="glass-panel w-full h-full min-h-[450px] rounded-2xl overflow-hidden relative z-0 p-1 flex flex-col"
+    <Card 
+      title="Mancha Criminal & Geolocalização" 
+      className="w-full h-full min-h-[280px] relative flex flex-col p-1"
     >
-      <div className="w-full h-full flex-1 rounded-xl overflow-hidden relative">
+      <div className="w-full h-full flex-1 rounded-sm overflow-hidden relative border border-border">
         <MapContainer 
           center={defaultPosition} 
           zoom={12} 
@@ -122,24 +135,24 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
 
           {/* Plota os outros pontos da mancha criminal em vermelho translúcido */}
           {otherPoints.map((pt) => {
-            // Evita duplicar o ponto selecionado
             if (selectedAlert && pt.id_alerta === selectedAlert.id_alerta) return null;
+            if (!pt.latitude || !pt.longitude) return null;
             return (
               <CircleMarker
                 key={pt.id_alerta}
                 center={[pt.latitude, pt.longitude]}
-                radius={6}
+                radius={5}
                 pathOptions={{
-                  color: "#ef4444",
-                  fillColor: "#ef4444",
-                  fillOpacity: 0.35,
+                  color: "var(--color-critical)",
+                  fillColor: "var(--color-critical)",
+                  fillOpacity: 0.45,
                   weight: 1
                 }}
               >
                 <Popup>
-                  <div className="font-sans text-[#171717] p-1.5 text-xs">
-                    <strong className="block text-red-600 font-bold mb-1">Mancha: Alerta #{pt.id_alerta}</strong>
-                    <p className="m-0 text-muted-foreground">{pt.tipo_alerta}</p>
+                  <div className="font-sans text-[#12151C] p-1.5 text-xs">
+                    <strong className="block text-[var(--color-critical)] font-bold mb-1">Alerta #{pt.id_alerta}</strong>
+                    <p className="m-0 text-[#5C6379] font-medium">{pt.tipo_alerta}</p>
                     <p className="m-0 mt-1 font-semibold">{pt.cidade} - {pt.bairro}</p>
                   </div>
                 </Popup>
@@ -148,16 +161,16 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
           })}
 
           {/* Marcador do Caso Selecionado */}
-          {hasValidCoordinates && (
+          {hasValidCoordinates && selectedAlert.latitude && selectedAlert.longitude && (
             <>
               <Marker position={activePosition} icon={createCustomIcon("blue")}>
-                <Popup className="custom-popup">
-                  <div className="font-sans text-[#171717] p-2 text-xs">
-                    <strong className="text-sm font-semibold block text-blue-600 mb-1">Caso em Auditoria</strong>
+                <Popup>
+                  <div className="font-sans text-[#12151C] p-2 text-xs">
+                    <strong className="text-sm font-semibold block text-[var(--color-focus)] mb-1">Caso em Auditoria</strong>
                     <p className="m-0 font-medium">Alerta: {selectedAlert.tipo_alerta}</p>
-                    <p className="m-0 mt-1 text-muted-foreground">Local: {selectedAlert.bairro}, {selectedAlert.cidade}</p>
+                    <p className="m-0 mt-1 text-[#5C6379]">Local: {selectedAlert.bairro}, {selectedAlert.cidade}</p>
                     {selectedAlert.cad && (
-                      <p className="m-0 mt-1.5 font-mono text-[10px] bg-slate-100 p-1 rounded">CAD: {selectedAlert.cad}</p>
+                      <p className="m-0 mt-1.5 font-mono text-[10px] bg-slate-100 p-1 rounded border">CAD: {selectedAlert.cad}</p>
                     )}
                   </div>
                 </Popup>
@@ -167,29 +180,21 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
           )}
         </MapContainer>
         
-        {/* Sombra interna para integrar o mapa ao glassmorphism */}
-        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(10,15,25,0.9)] z-[1000]" />
-        
         {/* Banner Indicativo de Falha de GPS */}
-        <AnimatePresence>
-          {selectedAlert && !hasValidCoordinates && (
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 15 }}
-              className="absolute bottom-4 left-4 right-4 z-[1001] glass p-3.5 rounded-xl border border-warning/30 bg-warning/5 backdrop-blur-md flex items-start gap-3"
-            >
-              <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5 animate-bounce" />
-              <div>
-                <h4 className="text-xs font-bold text-white">Geolocalização Indisponível (Qualidade do Dado)</h4>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  As coordenadas GPS deste fato constam como nulas ou zeradas (0.0, 0.0) na integração com o CAD/Quimera da PM. Exibindo centralização padrão em Maceió.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {selectedAlert && !hasValidCoordinates && (
+          <div 
+            className="absolute bottom-4 left-4 right-4 z-[1001] p-3.5 rounded-sm border border-[var(--color-warning)]/30 bg-[var(--color-warning-bg)] flex items-start gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold text-paper">Geolocalização Indisponível (Sem GPS)</h4>
+              <p className="text-[10px] text-slate mt-0.5 leading-relaxed">
+                As coordenadas GPS deste fato constam como nulas ou zeradas (0.0, 0.0) na integração com o CAD da PM. Exibindo centralização padrão em Maceió.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
-    </motion.div>
+    </Card>
   );
 }

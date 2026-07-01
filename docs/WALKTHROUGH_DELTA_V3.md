@@ -10,30 +10,22 @@ As demais bases (DAAS, CAD, IML) são fontes complementares consultadas manualme
 ## Composição da Base
 | Categoria | Qtd |
 |---|---|
-| **Total Mestra** | **4682** |
-| ✅ MVI Total (CVLI + MILAE) | **1104** |
-|  └ CVLI / MILAE | 1104 |
-|  └ RMNC (MIP / Não-MVI) | 1127 |
-| Outros Não-MVI (Tentativa, Suicídio, etc) | 2451 |
+| **Total Mestra** | **150** |
+| ✅ MVI Total (CVLI + MILAE) | **88** |
+|  └ CVLI / MILAE | 88 |
+|  └ RMNC (MIP / Não-MVI) | 16 |
+| Outros Não-MVI (Tentativa, Suicídio, etc) | 46 |
 
 ## Alertas MVI (Apenas registros classificados como MVI)
-- ⚠️ **BO PC Não Localizado no DAAS:** 21 casos
-- ⚠️ **Natureza DAAS Divergente de MVI:** 15 casos
-- ⚠️ **CAD não localizado no 190:** 2 casos
-- 🚨 **IML com DO Vazia:** 873 casos
-- ⚠️ **NIC Faltante (sem corpo registrado no IML):** 3 casos
-- ⚠️ **Divergência de Nome de Vítima no IML:** 2 casos
+- ⚠️ **BO PC Não Localizado no DAAS:** 0 casos
+- ⚠️ **Natureza DAAS Divergente de MVI:** 8 casos
+- ⚠️ **CAD não localizado no 190:** 0 casos
+- 🚨 **IML com DO Vazia:** 0 casos
+- ⚠️ **NIC Faltante (sem corpo registrado no IML):** 16 casos
+- ⚠️ **Divergência de Nome de Vítima no IML:** 7 casos
 
 ### Detalhamento: Naturezas DAAS Divergentes nos MVIs
-- `ENCONTRO DE CADÁVER`: 7 casos
-- `CONSTRANGIMENTO ILEGAL`: 1 casos
-- `CUMPRIMENTO DE MANDADO - PRISÃO - MORTE POR INTERVENÇÃO POLICIAL`: 1 casos
-- `DESTRUIÇÃO, SUBTRAÇÃO OU OCULTAÇÃO DE CADÁVER`: 1 casos
-- `ESTUPRO DE VULNERÁVEL - SE DA CONDUTA RESULTA MORTE`: 1 casos
-- `POSSE IRREGULAR DE ARMA DE FOGO, ACESSÓRIO OU MUNIÇÃO DE USO PERMITIDO`: 1 casos
-- `CUMPRIMENTO DE MANDADO - OUTROS`: 1 casos
-- `DESAPARECIMENTO DE PESSOA | LOCALIZAÇÃO DE PESSOA DESAPARECIDA`: 1 casos
-- `OUTROS FATOS ATÍPICOS`: 1 casos
+- `FURTO DE VEICULO`: 8 casos
 
 ---
 Arquivo consolidado: `data/output/sentinela_relatorio_delta_2025.csv`

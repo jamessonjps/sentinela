@@ -137,7 +137,9 @@ def run_delta_v3():
         # Classificação Mestra (Gold Standard)
         'ID_CONTROLE_MORTE', 'SUBJETIVIDADE', 'TIPO_MVI', 'EH_MVI',
         'BO_PC', 'CAD', 'NIC', 'NOME_VITIMA',
+        'SEXO_VITIMA', 'MAE_VITIMA', 'NASC_VITIMA', 'COR_RACA_VITIMA',
         'BAIRRO_FATO', 'CIDADE_FATO', 'DATA_HORA_FATO',
+
         'INSTRUMENTO_UTILIZADO', 'MOTIV_INICIAL',
         'AISP', 'RISP',
         # Status
@@ -148,13 +150,18 @@ def run_delta_v3():
         'ALERTA_NOME_DIVERGENTE',
         # DAAS complementar
         'NUM_BO', 'NO_NATUREZA_OCORRENCIA', 'DS_GRUPO_NATUREZA',
+        'ED_BAIRRO', 'NO_MUNICIPIO', 'DT_OCORRENCIA', 'SN_TENTATIVA',
+        'SN_MARIA_DA_PENHA', 'IN_SITUACAO_ATUAL',
+
         # CAD complementar
         'ID_OCOR', 'DS_NATUREZA_ATEND', 'DS_GRUPO_CRIME_ATEND',
         'NR_COOR_LATD', 'NR_COOR_LONG',
         # IML complementar
         'NIC_IML', 'NOM_VITIMA', 'TIPO_MORTE', 'NR_DECLARACAO_OBITO',
-        'SEXO', 'ETNIA', 'NASCIMENTO',
+        'SEXO', 'ETNIA', 'NASCIMENTO', 'STATUS_IML_STAT', 'MAE',
     ]
+
+
     
     colunas_presentes = [c for c in colunas_finais if c in df_delta.columns]
     df_final = df_delta[colunas_presentes]

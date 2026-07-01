@@ -1,11 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { FileText, MapPin, Calendar, Clock, AlertTriangle, ShieldCheck, ArrowRight, RefreshCw, CheckCircle, HelpCircle } from "lucide-react";
+import { FileText, AlertTriangle, CheckCircle, RefreshCw, MapPin } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+
+interface Alert {
+  id_alerta: number;
+  id_controle_morte: number;
+  tipo_alerta: string;
+  subjetividade: string;
+  prioridade: number;
+  cidade: string;
+  bairro?: string;
+  bo_pc?: string;
+  cad?: string;
+  nic?: string;
+  declaracao_obito?: string;
+  tipo_morte_iml?: string;
+  natureza_cad?: string;
+  natureza_daas?: string;
+  aisp?: string;
+  risp?: string;
+  data_hora_fato?: string;
+  nome_vitima_cm?: string;
+  nome_vitima_iml?: string;
+  latitude?: number;
+  longitude?: number;
+  status_alerta?: string;
+}
 
 interface CaseTimelineProps {
-  selectedAlert: any;
+  selectedAlert: Alert | null;
   onStatusChanged: () => void;
 }
 
@@ -18,15 +44,15 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
 
   if (!selectedAlert) {
     return (
-      <div className="glass-card p-6 w-full h-full flex flex-col items-center justify-center text-center rounded-2xl">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground mb-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <FileText className="w-8 h-8 opacity-40" />
+      <Card title="Ficha do Caso" className="w-full h-full flex flex-col items-center justify-center text-center">
+        <div className="w-12 h-12 rounded-sm bg-surface-raised border border-border flex items-center justify-center text-slate mb-4">
+          <FileText className="w-6 h-6 opacity-45" />
         </div>
-        <h3 className="text-sm font-bold text-white">Nenhum Alerta Selecionado</h3>
-        <p className="text-xs text-muted-foreground max-w-[200px] mt-2">
-          Selecione uma ocorrência na fila de auditoria para visualizar a consistência de chaves e dados.
+        <h3 className="text-xs font-bold uppercase tracking-wider text-paper">Nenhum Caso Selecionado</h3>
+        <p className="text-xs text-slate max-w-[220px] mt-2">
+          Selecione uma ocorrência na fila de auditoria para visualizar a consistência de chaves e fluxo dos sistemas.
         </p>
-      </div>
+      </Card>
     );
   }
 
@@ -48,163 +74,165 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
     }
   };
 
-  // Prepara as etapas da linha do tempo com base nas chaves do caso selecionado
-  const steps = [
-    {
-      id: "fato",
-      title: "Fato Registrado (Mestra)",
-      subtitle: `ID Mestra: #${selectedAlert.id_controle_morte}`,
-      description: `Classificação: ${selectedAlert.subjetividade} • Instrumento: ${selectedAlert.instrumento || 'Não Informado'}`,
-      date: selectedAlert.data_hora_fato || "Data N/I",
-      status: "success",
-      badge: selectedAlert.tipo_mvi || "MVI"
-    },
-    {
-      id: "cad",
-      title: "Despacho 190 (PM)",
-      subtitle: selectedAlert.cad && selectedAlert.cad !== "None" && selectedAlert.cad !== "NAN" 
-        ? `CAD ID: ${selectedAlert.cad}` 
-        : "Vínculo CAD Faltante",
-      description: selectedAlert.natureza_cad 
-        ? `Natureza Despachada: ${selectedAlert.natureza_cad}` 
-        : "Nenhum vínculo automático ou manual com o despacho 190.",
-      date: selectedAlert.cad && selectedAlert.cad !== "NAN" ? "Integrado" : "Pendente",
-      status: selectedAlert.cad && selectedAlert.cad !== "NAN" ? "success" : "warning",
-      alert: selectedAlert.cad === "NAN" || !selectedAlert.cad
-    },
-    {
-      id: "bo",
-      title: "Boletim de Ocorrência (PC)",
-      subtitle: selectedAlert.bo_pc && selectedAlert.bo_pc !== "None" && selectedAlert.bo_pc !== "NAN" 
-        ? `BO PC: ${selectedAlert.bo_pc}` 
-        : "BO Não Localizado",
-      description: selectedAlert.natureza_daas 
-        ? `Natureza PPE: ${selectedAlert.natureza_daas}`
-        : "Ocorrência sem Boletim de Ocorrência registrado no DAAS.",
-      date: selectedAlert.bo_pc && selectedAlert.bo_pc !== "NAN" ? "Integrado" : "Pendente",
-      status: selectedAlert.bo_pc && selectedAlert.bo_pc !== "NAN" 
-        ? (selectedAlert.alerta_natureza_divergente === "VERIFICAR" ? "warning" : "success") 
-        : "warning",
-      alert: selectedAlert.alerta_bo_inexistente === "SIM" || selectedAlert.alerta_natureza_divergente === "VERIFICAR"
-    },
-    {
-      id: "iml",
-      title: "Entrada Necrotério (IML)",
-      subtitle: selectedAlert.nic && selectedAlert.nic !== "None" && selectedAlert.nic !== "NAN" 
-        ? `NIC IML: ${selectedAlert.nic}` 
-        : "NIC Faltante",
-      description: selectedAlert.nic && selectedAlert.nic !== "NAN"
-        ? (selectedAlert.declaracao_obito 
-            ? `DO: ${selectedAlert.declaracao_obito} • Causa: ${selectedAlert.tipo_morte_iml || 'N/I'}`
-            : "Corpo deu entrada no IML, porém o número da Declaração de Óbito (DO) está VAZIO.")
-        : "Nenhum registro de laudo necroscópico ou NIC associado.",
-      date: selectedAlert.nic && selectedAlert.nic !== "NAN" ? "Integrado" : "Pendente",
-      status: selectedAlert.nic && selectedAlert.nic !== "NAN"
-        ? (selectedAlert.declaracao_obito ? "success" : "danger") 
-        : "warning",
-      alert: selectedAlert.alerta_nic_faltante === "SIM" || selectedAlert.declaracao_obito === null || !selectedAlert.declaracao_obito
-    }
+  // Verifica se o caso é uma evolução de tentativa para óbito (evento central)
+  const isEvolution = 
+    selectedAlert.subjetividade?.toLowerCase().includes("tentativa") || 
+    selectedAlert.tipo_alerta?.toLowerCase().includes("evolução") || 
+    selectedAlert.tipo_alerta?.toLowerCase().includes("tentativa");
+
+  const hasBo = selectedAlert.bo_pc && selectedAlert.bo_pc !== "None" && selectedAlert.bo_pc !== "NAN";
+  const hasCad = selectedAlert.cad && selectedAlert.cad !== "None" && selectedAlert.cad !== "NAN";
+  const hasNic = selectedAlert.nic && selectedAlert.nic !== "None" && selectedAlert.nic !== "NAN";
+  const hasDo = selectedAlert.declaracao_obito && selectedAlert.declaracao_obito !== "";
+
+  // Definição dos nós do fluxo operacional
+  const nodes = [
+    { id: "fato", label: "Fato", filled: true, active: true },
+    { id: "bo", label: "BO PC", filled: !!hasBo, active: true },
+    { id: "cad", label: "CAD PM", filled: !!hasCad, active: true },
+    { id: "iml", label: "IML", filled: !!hasNic, isEvol: isEvolution, active: true },
+    { id: "nic", label: "NIC", filled: !!hasNic && !!hasDo, active: true },
   ];
 
   return (
-    <div className="glass-card p-5 w-full h-full flex flex-col rounded-2xl overflow-hidden">
-      {/* Cabeçalho do Detalhe */}
-      <div className="mb-4 shrink-0">
-        <h2 className="text-sm font-bold text-white flex items-center gap-1.5 mb-1">
-          <FileText className="text-primary w-4.5 h-4.5" />
-          Ficha do Alerta #{selectedAlert.id_alerta}
-        </h2>
-        <span className="text-[10px] text-muted-foreground font-mono block truncate">
-          Vítima: VITIMA_{selectedAlert.id_controle_morte}
-        </span>
-        <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-2">
-          <span className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded border border-white/5">
-            AISP: {selectedAlert.aisp}
+    <Card
+      title={`Ficha do Alerta #${selectedAlert.id_alerta}`}
+      action={
+        <Badge variant={selectedAlert.prioridade >= 3 ? "critical" : selectedAlert.prioridade === 2 ? "warning" : "ok"}>
+          {selectedAlert.prioridade >= 3 ? "Alta Prioridade" : selectedAlert.prioridade === 2 ? "Média" : "Baixa"}
+        </Badge>
+      }
+      className="w-full h-full min-h-0 flex flex-col"
+    >
+      {/* Informações da Vítima e Local */}
+      <div className="grid grid-cols-2 gap-3 mb-4 shrink-0 bg-surface-raised/40 p-3 border border-border rounded-sm">
+        <div>
+          <span className="text-[10px] text-slate uppercase tracking-wider block">Identificação Vítima</span>
+          <span className="text-[13px] font-bold text-paper block truncate">
+            {selectedAlert.nome_vitima_cm || `VÍTIMA_${selectedAlert.id_controle_morte}`}
           </span>
-          <span className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded border border-white/5">
-            RISP: {selectedAlert.risp}
+        </div>
+        <div>
+          <span className="text-[10px] text-slate uppercase tracking-wider block">Município / Localidade</span>
+          <span className="text-[13px] font-bold text-paper block truncate flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-slate shrink-0" />
+            {selectedAlert.cidade}
           </span>
+        </div>
+        <div className="col-span-2 grid grid-cols-3 gap-2 mt-1.5 pt-2 border-t border-border/30 text-[11px] text-slate font-mono">
+          <span>AISP: {selectedAlert.aisp || "N/A"}</span>
+          <span>RISP: {selectedAlert.risp || "N/A"}</span>
+          <span>Data: {selectedAlert.data_hora_fato || "N/A"}</span>
         </div>
       </div>
 
-      {/* Alerta de Divergência de Nome Vítima */}
-      {selectedAlert.tipo_alerta && selectedAlert.tipo_alerta.includes("Divergência de Nome") && (
-        <div className="bg-destructive/10 border border-destructive/20 p-3.5 rounded-xl mb-4 text-xs shrink-0">
-          <h4 className="font-bold text-destructive flex items-center gap-1.5 mb-1.5 uppercase tracking-wider text-[9px]">
-            <AlertTriangle className="w-4 h-4 text-destructive animate-pulse" />
-            Divergência de Nome no IML
-          </h4>
-          <p className="text-[10px] text-muted-foreground mb-2 leading-tight">
-            O necrotério registrou um nome de vítima divergente ou identificou o corpo na base.
-          </p>
-          <div className="grid grid-cols-2 gap-2 text-[10px] bg-black/45 p-2 rounded-lg border border-white/5 font-mono">
-            <div>
-              <span className="text-muted-foreground text-[8px] block uppercase">Controle Morte:</span>
-              <span className="text-white font-bold block truncate" title={selectedAlert.nome_vitima_cm}>
-                {selectedAlert.nome_vitima_cm || "N.I."}
+      {/* Linha do Tempo Horizontal */}
+      <div className="shrink-0 mb-5 border border-border rounded-sm bg-surface-raised/20">
+        <div className="text-[10px] text-slate uppercase tracking-wider font-bold px-3 pt-2.5">
+          Fluxo de Integração de Sistemas
+        </div>
+        <div className="relative flex items-center justify-between w-full px-5 py-4">
+          {/* Conector de 1px sólido */}
+          <div className="absolute left-10 right-10 h-[1px] bg-border top-1/2 -translate-y-1/2 z-0" />
+          
+          {nodes.map((node, i) => (
+            <div key={node.id} className="relative z-10 flex flex-col items-center gap-1.5">
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center border text-[11px] font-mono font-bold transition-all duration-300 ${
+                  node.isEvol
+                    ? "bg-[var(--color-critical)] border-[var(--color-critical)] text-paper ring-4 ring-[var(--color-critical-bg)]"
+                    : node.filled
+                    ? "bg-[var(--color-ok)] border-[var(--color-ok)] text-paper"
+                    : "bg-surface border-[var(--color-slate-dim)] text-[var(--color-slate-dim)]"
+                }`}
+              >
+                {i + 1}
+              </div>
+              <span className="text-[9px] text-slate font-bold uppercase tracking-wider">
+                {node.label}
               </span>
             </div>
-            <div>
-              <span className="text-muted-foreground text-[8px] block uppercase">Registrado IML:</span>
-              <span className="text-warning font-bold block truncate" title={selectedAlert.nome_vitima_iml}>
-                {selectedAlert.nome_vitima_iml || "N.I."}
+          ))}
+        </div>
+      </div>
+
+      {/* Detalhamento dos Alertas / Divergências */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 min-h-0 space-y-3">
+        {/* Alerta de Divergência de Nome Vítima */}
+        {selectedAlert.tipo_alerta && selectedAlert.tipo_alerta.toLowerCase().includes("nome") && (
+          <div className="bg-[var(--color-critical-bg)] border border-[var(--color-critical)]/20 p-3 rounded-sm">
+            <h4 className="text-[10px] font-bold text-[var(--color-critical)] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              Divergência Crítica de Identidade
+            </h4>
+            <p className="text-[11px] text-slate mb-2">
+              Divergência fonética de nome detectada entre o prontuário do necrotério e a ficha de óbito.
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-[11px] bg-ink/70 p-2.5 border border-border font-mono">
+              <div>
+                <span className="text-slate text-[9px] block uppercase">Mestra (Controle Morte):</span>
+                <span className="text-paper font-bold block truncate">{selectedAlert.nome_vitima_cm || "N/A"}</span>
+              </div>
+              <div>
+                <span className="text-slate text-[9px] block uppercase">IML (Necroscópico):</span>
+                <span className="text-[var(--color-warning)] font-bold block truncate">{selectedAlert.nome_vitima_iml || "N/A"}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Informações dos Sistemas Relacionados */}
+        <div className="border border-border rounded-sm p-3 bg-surface-raised/15 space-y-2.5">
+          <div className="text-[10px] text-slate uppercase tracking-wider font-bold">
+            Auditoria de Chaves do Fluxo
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="flex flex-col gap-1 p-2 bg-ink border border-border/60 rounded-sm">
+              <span className="text-[9px] text-slate uppercase font-bold">Boletim de Ocorrência PC</span>
+              <span className="font-mono text-paper">
+                {hasBo ? selectedAlert.bo_pc : "Não Vinculado"}
+              </span>
+              <span className="text-[10px] text-slate-dim">
+                {selectedAlert.natureza_daas || "Natureza não localizada no PPE"}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1 p-2 bg-ink border border-border/60 rounded-sm">
+              <span className="text-[9px] text-slate uppercase font-bold">Despacho 190 PM (CAD)</span>
+              <span className="font-mono text-paper">
+                {hasCad ? selectedAlert.cad : "Não Vinculado"}
+              </span>
+              <span className="text-[10px] text-slate-dim">
+                {selectedAlert.natureza_cad || "Despacho não localizado no CAD"}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1 p-2 bg-ink border border-border/60 rounded-sm">
+              <span className="text-[9px] text-slate uppercase font-bold">Registro de Entrada IML</span>
+              <span className="font-mono text-paper">
+                {hasNic ? selectedAlert.nic : "Não Vinculado (Sem Corpo)"}
+              </span>
+              <span className="text-[10px] text-slate-dim">
+                {selectedAlert.tipo_morte_iml ? `Morte: ${selectedAlert.tipo_morte_iml}` : "Laudo pendente"}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1 p-2 bg-ink border border-border/60 rounded-sm">
+              <span className="text-[9px] text-slate uppercase font-bold">Declaração de Óbito (DO)</span>
+              <span className="font-mono text-paper">
+                {hasDo ? selectedAlert.declaracao_obito : "DO Vazia/Pendente"}
+              </span>
+              <span className="text-[10px] text-slate-dim">
+                Guia física recolhida no IML
               </span>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Linha do Tempo Física */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar py-2 pr-1 relative">
-        <div className="absolute left-[17px] top-6 bottom-6 w-[2px] bg-white/5 rounded-full" />
-
-        <div className="space-y-5">
-          {steps.map((step) => {
-            const isSuccess = step.status === "success";
-            const isDanger = step.status === "danger";
-            
-            return (
-              <div key={step.id} className="relative flex items-start gap-4">
-                {/* Indicador Visual do Nó */}
-                <div className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center border transition-all duration-300 ${
-                  isSuccess ? "bg-success/10 border-success/30 text-success" : 
-                  isDanger ? "bg-destructive/10 border-destructive/30 text-destructive animate-pulse" : 
-                  "bg-warning/10 border-warning/30 text-warning"
-                }`}>
-                  <FileText className="w-4 h-4" />
-                </div>
-
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-semibold text-white text-xs truncate">
-                      {step.title}
-                    </h3>
-                    <span className="text-[9px] text-muted-foreground font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/5 shrink-0">
-                      {step.date}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-white/80 font-medium mt-1 truncate">{step.subtitle}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
-                    {step.description}
-                  </p>
-                  
-                  {/* Sinalizador de inconsistência local */}
-                  {step.alert && (
-                    <div className="mt-1.5 flex items-center gap-1 text-[9px] bg-destructive/5 text-destructive border border-destructive/10 px-2 py-0.5 rounded-md w-fit">
-                      <AlertTriangle className="w-3 h-3" />
-                      Inconsistência Identificada
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
-      {/* Ações de Tratamento */}
-      <div className="mt-4 pt-4 border-t border-white/5 shrink-0">
-        <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Tratamento do Alerta</h4>
+      {/* Ações de Tratamento do Alerta */}
+      <div className="mt-4 pt-4 border-t border-border shrink-0">
         <div className="flex gap-2">
           {selectedAlert.status_alerta !== "Resolvido" ? (
             <>
@@ -212,28 +240,28 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
                 <button
                   onClick={() => handleStatusChange("Em Tratativa")}
                   disabled={updating}
-                  className="flex-1 bg-warning/20 hover:bg-warning/30 text-warning text-xs font-bold py-2 px-3 rounded-xl border border-warning/30 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="flex-1 bg-[var(--color-warning-bg)] hover:bg-[var(--color-warning-bg)]/80 text-[var(--color-warning)] text-xs font-bold py-2 rounded-sm border border-[var(--color-warning)]/30 flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
                 >
-                  {updating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Iniciar Tratativa"}
+                  {updating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Iniciar Tratativa (NEAC)"}
                 </button>
               ) : (
                 <button
                   onClick={() => handleStatusChange("Resolvido")}
                   disabled={updating}
-                  className="flex-1 bg-success/20 hover:bg-success/30 text-success text-xs font-bold py-2 px-3 rounded-xl border border-success/30 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="flex-1 bg-[var(--color-ok-bg)] hover:bg-[var(--color-ok-bg)]/80 text-[var(--color-ok)] text-xs font-bold py-2 rounded-sm border border-[var(--color-ok)]/30 flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
                 >
                   {updating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Resolver Inconsistência"}
                 </button>
               )}
             </>
           ) : (
-            <div className="w-full bg-success/15 border border-success/20 py-2.5 rounded-xl flex items-center justify-center gap-2 text-success text-xs font-bold">
+            <div className="w-full bg-[var(--color-ok-bg)] border border-[var(--color-ok)]/20 py-2 rounded-sm flex items-center justify-center gap-2 text-[var(--color-ok)] text-xs font-bold">
               <CheckCircle className="w-4 h-4" />
-              Alerta Resolvido
+              Alerta Resolvido / Auditado
             </div>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

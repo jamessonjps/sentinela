@@ -35,7 +35,12 @@ class VwSentinelaCasoCompleto(Base):
     RISP = Column(String(100))
     STATUS = Column(String(100))
     NOME_VITIMA = Column(String(255), nullable=True)
+    SEXO_VITIMA = Column(String(50), nullable=True)
+    MAE_VITIMA = Column(String(255), nullable=True)
+    NASC_VITIMA = Column(String(100), nullable=True)
+    COR_RACA_VITIMA = Column(String(50), nullable=True)
     NOM_VITIMA_IML = Column(String(255), nullable=True)
+
     
     # Flags de Alerta
     ALERTA_BO_INEXISTENTE = Column(String(50))
@@ -49,6 +54,13 @@ class VwSentinelaCasoCompleto(Base):
     NUM_BO = Column(String(100))
     NO_NATUREZA_OCORRENCIA = Column(Text)
     DS_GRUPO_NATUREZA = Column(Text)
+    ED_BAIRRO = Column(String(255))
+    NO_MUNICIPIO = Column(String(255))
+    DT_OCORRENCIA = Column(String(100))
+    SN_TENTATIVA = Column(Integer)
+    SN_MARIA_DA_PENHA = Column(Integer)
+    IN_SITUACAO_ATUAL = Column(String(50))
+
     
     # Polícia Militar (CAD) complementar
     ID_OCOR = Column(String(100))
@@ -64,6 +76,10 @@ class VwSentinelaCasoCompleto(Base):
     SEXO = Column(String(10))
     ETNIA = Column(String(50))
     NASCIMENTO = Column(String(100))
+    STATUS_IML = Column(String(100))
+    MAE_IML = Column(String(255))
+
+
 
 
 class SentinelaRadarCAD(Base):
@@ -100,3 +116,26 @@ class SentinelaRadarCAD(Base):
     STATUS_RADAR = Column(String(50), default="Novo")    # Novo, Validado, Descartado
     DT_DETECCAO = Column(DateTime, default=func.now())   # Quando o radar detectou
     DT_VALIDACAO = Column(DateTime, nullable=True)       # Quando o analista validou/descartou
+
+
+class SentinelaReconciliacaoLog(Base):
+    """
+    Tabela de logs de reconciliação e divergências campo-a-campo.
+    Registra inconsistências entre a Controle Morte e fontes externas
+    ou sugestões de correlação probabilística (ex: CAD ↔ PPE).
+    """
+    __tablename__ = "SENTINELA_RECONCILIACAO_LOG"
+    
+    ID_RECONCILIACAO = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    ID_CONTROLE_MORTE = Column(Integer, index=True)
+    FONTE = Column(String(20), index=True)               # IML, CAD, PPE
+    CAMPO_MESTRA = Column(String(100))                  # ex: NOME_VITIMA
+    VALOR_MESTRA = Column(String(4000), nullable=True)
+    CAMPO_FONTE = Column(String(100))                   # ex: NOM_VITIMA
+    VALOR_FONTE = Column(String(4000), nullable=True)
+    TIPO_DIVERGENCIA = Column(String(50))                # VALOR_DIFERENTE, CAMPO_VAZIO_MESTRA, CORRELACAO_PROBABILISTICA
+    SCORE_SIMILARIDADE = Column(Float, nullable=True)   # Score calculado (Jaro-Winkler ou correlação)
+    DT_DETECCAO = Column(DateTime, default=func.now())
+    STATUS = Column(String(30), default="Pendente", index=True) # Pendente, Confirmado, Ignorado
+    DT_RESOLUCAO = Column(DateTime, nullable=True)
+

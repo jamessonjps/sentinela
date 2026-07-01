@@ -1,11 +1,27 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, Clock, MapPin, ChevronRight, Search, Eye, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Search, CheckCircle2 } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { DataTable, Column } from "@/components/ui/DataTable";
+
+interface Alert {
+  id_alerta: number;
+  id_controle_morte: number;
+  tipo_alerta: string;
+  subjetividade: string;
+  prioridade: number;
+  cidade: string;
+  bairro?: string;
+  bo_pc?: string;
+  cad?: string;
+  nic?: string;
+}
 
 interface AlertQueueProps {
-  onSelectAlert: (alert: any) => void;
+  onSelectAlert: (alert: Alert) => void;
   selectedAlertId?: number;
 }
 
@@ -14,13 +30,15 @@ const API_BASE_URL = typeof window !== "undefined"
   : "http://localhost:8000";
 
 export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) {
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [statusFilter, setStatusFilter] = useState("Novo");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchAlerts = async () => {
-    setLoading(true);
+  const fetchAlerts = async (isBackground = false) => {
+    if (!isBackground) {
+      setLoading(true);
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/alertas/?status=${statusFilter}&limit=100`);
       if (res.ok) {
@@ -30,19 +48,21 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
     } catch (err) {
       console.error("Erro ao buscar alertas:", err);
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchAlerts();
+    fetchAlerts(false);
     
-    // Configura um intervalo para atualizar a fila a cada 30 segundos
-    const interval = setInterval(fetchAlerts, 30000);
+    // Polling silencioso a cada 30 segundos
+    const interval = setInterval(() => fetchAlerts(true), 30000);
     return () => clearInterval(interval);
   }, [statusFilter]);
 
-  // Filtro local adicional de busca (por BO, CAD, Cidade ou Bairro)
+
   const filteredAlerts = alerts.filter(alert => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
@@ -55,30 +75,77 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
     );
   });
 
-  return (
-    <div className="glass-card p-3.5 w-full h-full min-h-0 flex flex-col rounded-xl overflow-hidden">
-      {/* Header com Filtros Principais */}
-      <div className="flex flex-col gap-2.5 mb-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
-            <ShieldAlert className="text-primary w-4 h-4 animate-pulse" />
-            Fila de Auditoria
-          </h2>
-          <span className="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full font-bold border border-primary/20">
-            {filteredAlerts.length} alertas
+  const columns: Column<Alert>[] = [
+    {
+      key: "prioridade",
+      label: "PRIO",
+      sortable: true,
+      render: (alert: Alert) => {
+        const variant = alert.prioridade >= 3 ? "critical" : alert.prioridade === 2 ? "warning" : "ok";
+        const label = alert.prioridade >= 3 ? "Alta" : alert.prioridade === 2 ? "Média" : "Baixa";
+        return <Badge variant={variant}>{label}</Badge>;
+      },
+      className: "w-20"
+    },
+    {
+      key: "tipo_alerta",
+      label: "ALERTA",
+      sortable: true,
+      className: "font-semibold text-paper"
+    },
+    {
+      key: "id_controle_morte",
+      label: "ID CM / SUBJETIVIDADE",
+      render: (alert: Alert) => (
+        <span className="text-slate">
+          {alert.id_controle_morte} • {alert.subjetividade}
+        </span>
+      ),
+      className: "hidden md:table-cell"
+    },
+    {
+      key: "cidade",
+      label: "CIDADE",
+      sortable: true,
+      className: "text-slate"
+    },
+    {
+      key: "bo_pc",
+      label: "BO PC",
+      render: (alert: Alert) => (
+        alert.bo_pc && alert.bo_pc !== "NAN" ? (
+          <span className="font-mono px-1.5 py-0.5 bg-ink border border-border rounded-sm text-[10px] text-paper">
+            {alert.bo_pc}
           </span>
-        </div>
+        ) : (
+          <span className="text-slate-dim font-mono text-[10px]">—</span>
+        )
+      )
+    }
+  ];
 
+  return (
+    <Card
+      title="Fila de Auditoria"
+      action={
+        <span className="text-[10px] font-mono px-2 py-0.5 bg-ink border border-border text-focus font-bold rounded-sm uppercase tracking-wider">
+          {filteredAlerts.length} alertas
+        </span>
+      }
+      className="w-full h-full min-h-0 flex flex-col"
+    >
+      {/* Filtros e Busca */}
+      <div className="flex flex-col gap-2.5 mb-3 shrink-0">
         {/* Tabs de Status */}
-        <div className="grid grid-cols-3 gap-1 bg-black/30 p-1 rounded-xl border border-white/5 text-xs font-semibold">
+        <div className="grid grid-cols-3 gap-1 bg-ink p-1 rounded-sm border border-border text-xs font-semibold">
           {["Novo", "Em Tratativa", "Resolvido"].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`py-1.5 rounded-md transition-all cursor-pointer ${
+              className={`py-1 rounded-sm transition-all cursor-pointer text-[11px] font-medium uppercase tracking-wider ${
                 statusFilter === status
-                  ? "bg-primary/20 text-white border border-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
-                  : "text-muted-foreground hover:text-white"
+                  ? "bg-surface-raised text-paper border border-border"
+                  : "text-slate hover:text-paper"
               }`}
             >
               {status}
@@ -86,89 +153,42 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
           ))}
         </div>
 
-        {/* Input de Busca */}
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        {/* Busca */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-dim" />
           <input
             type="text"
             placeholder="Buscar por BO, CAD, local..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black/20 border border-white/5 pl-9 pr-3 py-1.5 rounded-lg text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
+            className="w-full bg-ink border border-border pl-9 pr-3 py-1.5 rounded-sm text-xs text-paper placeholder:text-slate-dim focus:outline-none focus:border-focus transition-all"
           />
         </div>
       </div>
 
-      {/* Lista de Alertas */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 min-h-0">
+      {/* Lista / Tabela */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
         {loading ? (
           <div className="h-40 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-focus border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : filteredAlerts.length === 0 ? (
-          <div className="h-40 flex flex-col items-center justify-center text-center text-muted-foreground">
-            <CheckCircle2 className="w-8 h-8 text-success/60 mb-2" />
-            <span className="text-sm font-semibold">Nenhum alerta pendente</span>
-            <span className="text-[10px] mt-1">Ótimo! Os dados de MVI estão consistentes.</span>
+          <div className="h-40 flex flex-col items-center justify-center text-center text-slate">
+            <CheckCircle2 className="w-8 h-8 text-[var(--color-ok)] mb-2" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Sem divergências</span>
+            <span className="text-[10px] text-slate-dim mt-1">Os dados de MVI estão consistentes nesta fila.</span>
           </div>
         ) : (
-          <AnimatePresence>
-            {filteredAlerts.map((alert, index) => {
-              const isSelected = selectedAlertId === alert.id_alerta;
-              return (
-                <motion.div
-                  key={alert.id_alerta}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.2, delay: Math.min(index * 0.05, 0.5) }}
-                  onClick={() => onSelectAlert(alert)}
-                  className={`glass-button p-2.5 rounded-lg flex items-center justify-between group cursor-pointer transition-all duration-300 ${
-                    isSelected
-                      ? "bg-primary/10 border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.15)] scale-[1.01]"
-                      : "hover:bg-white/5 border-white/5"
-                  }`}
-                >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {/* Indicador de Prioridade */}
-                    <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
-                      alert.prioridade >= 3 ? "bg-destructive shadow-[0_0_10px_rgba(239,68,68,0.8)]" :
-                      alert.prioridade === 2 ? "bg-warning shadow-[0_0_10px_rgba(245,158,11,0.8)]" :
-                      "bg-success shadow-[0_0_10px_rgba(16,185,129,0.8)]"
-                    }`} />
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white text-xs truncate group-hover:text-primary transition-colors">
-                        {alert.tipo_alerta}
-                      </h3>
-                      
-                      {/* Sub-informações */}
-                      <p className="text-[10px] text-muted-foreground mt-1 truncate">
-                        ID: {alert.id_controle_morte} • {alert.subjetividade}
-                      </p>
-                      
-                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mt-1.5">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-primary/75" />
-                          {alert.cidade}
-                        </span>
-                        {alert.bo_pc && alert.bo_pc !== "NAN" && (
-                          <span className="font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
-                            BO: {alert.bo_pc}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 text-muted-foreground transition-all duration-300 ${
-                    isSelected ? "translate-x-1 text-primary" : "group-hover:translate-x-1 group-hover:text-white"
-                  }`} />
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+          <DataTable
+            columns={columns}
+            data={filteredAlerts}
+            rowIdKey="id_alerta"
+            selectedRowId={selectedAlertId}
+            onRowClick={onSelectAlert}
+            zebra={true}
+          />
         )}
       </div>
-    </div>
+    </Card>
   );
 }

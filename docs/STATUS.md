@@ -33,7 +33,22 @@ O desenvolvimento arquitetural e estrutural do Módulo SENTINELA foi **concluíd
 - **Dockerfiles**: O Backend (`Dockerfile.api`) e o Frontend (`Dockerfile.frontend`) foram criados.
 - **Orquestração**: O `docker-compose.yml` foi escrito contendo as filas do **Redis** e os workers assíncronos do **Celery**, unindo tudo em uma rede isolada.
 
+### FASE 6: Motor de Reconciliação / Comparador de Divergências (CONCLUÍDO ✅)
+- **Banco de Dados**: Script DDL criado em `database/ddl/sentinela_reconciliacao.sql` para a tabela `SENTINELA_RECONCILIACAO_LOG` e modelo ORM em `api/models.py`.
+- **Agentes de Comparação**:
+  - `field_rules.py`: Módulo contendo regras de normalização de dados e algoritmo pure-Python de similaridade Jaro-Winkler.
+  - `iml_comparator.py`: Comparador da base de dados do IML. Realiza auditoria de nomes, filiação (mãe), sexo, etnia, data de nascimento e detecção de evolução de tentativas para óbito com janela de 30 dias.
+  - `cad_comparator.py`: Motor de correlação probabilística entre despachos do CAD (190 PM) e boletins da Polícia Civil (PPE), gerando pontuação percentual (score) baseada em proximidade temporal, espacial, dados de envolvidos e natureza do crime, com flag de disponibilidade de coordenadas GPS para validação manual.
+  - `ppe_comparator.py`: Comparador da base de boletins da Polícia Civil. Realiza auditoria de desvios de bairro/cidade/data e upgrades de crimes (Tentativa no BO vs MVI consumado na Mestra, agravante Maria da Penha e cancelamento de BOs).
+  - `orchestrator.py`: Orquestrador central que executa os comparadores de forma incremental (estratégia Delta).
+- **Backend API**: Endpoints REST criados em `api/routes/reconciliacao.py` e registrados em `api/main.py`:
+  - `GET /api/v1/reconciliacao/`: Lista divergências e sugestões de correlação probabilística com dados contextuais e barra de convergência.
+  - `POST /api/v1/reconciliacao/{id}/resolver`: Permite que o analista resolva manualmente (marque como Confirmado ou Ignorado) a divergência apontada.
+  - `GET /api/v1/reconciliacao/stats`: Estatísticas para o painel de controle (totais por fonte e status).
+- **Mocks & Testes**: Atualizamos a geração de mocks em `generate_mock_data.py` e o sementador `db_seeder.py` para injetar casos reais de teste que disparam os alertas e logs do reconciliador. Criamos o script de testes automatizados in-process `scratch/test_api.py`.
+
 ---
+
 
 ## O que Falta Fazer (Validação)
 A nível de código, o esqueleto, os agentes e a lógica central já estão materializados nos arquivos do seu computador local.

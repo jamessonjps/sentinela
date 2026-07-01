@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import alertas, cientifico, radar
+from .routes import alertas, cientifico, radar, reconciliacao
 import uvicorn
+
 
 app = FastAPI(
     title="SENTINELA API",
@@ -28,6 +29,8 @@ app.add_middleware(
 app.include_router(alertas.router, prefix="/api/v1/alertas", tags=["Alertas"])
 app.include_router(cientifico.router, prefix="/api/v1/cientifico", tags=["Científico"])
 app.include_router(radar.router, prefix="/api/v1/radar", tags=["Radar CAD"])
+app.include_router(reconciliacao.router, prefix="/api/v1/reconciliacao", tags=["Reconciliação"])
+
 
 @app.get("/health", tags=["System"])
 def health_check():

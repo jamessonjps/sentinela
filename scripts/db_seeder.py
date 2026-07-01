@@ -69,7 +69,13 @@ def seed_casos(session, csv_path):
             RISP=clean_val(row.get('RISP')),
             STATUS=clean_val(row.get('STATUS')),
             NOME_VITIMA=clean_val(row.get('NOME_VITIMA')),
-            NOM_VITIMA_IML='IML_VITIMA_' + str(clean_val(row.get('ID_CONTROLE_MORTE', ''))),
+            SEXO_VITIMA=clean_val(row.get('SEXO_VITIMA')),
+            MAE_VITIMA=clean_val(row.get('MAE_VITIMA')),
+            NASC_VITIMA=clean_val(row.get('NASC_VITIMA')),
+            COR_RACA_VITIMA=clean_val(row.get('COR_RACA_VITIMA')),
+            NOM_VITIMA_IML=clean_val(row.get('NOM_VITIMA')),
+
+
             ALERTA_BO_INEXISTENTE=clean_val(row.get('ALERTA_BO_INEXISTENTE')),
             ALERTA_NATUREZA_DIVERGENTE=clean_val(row.get('ALERTA_NATUREZA_DIVERGENTE')),
             ALERTA_CAD_FALTANTE=clean_val(row.get('ALERTA_CAD_FALTANTE')),
@@ -79,6 +85,13 @@ def seed_casos(session, csv_path):
             NUM_BO=clean_val(row.get('NUM_BO')),
             NO_NATUREZA_OCORRENCIA=clean_val(row.get('NO_NATUREZA_OCORRENCIA')),
             DS_GRUPO_NATUREZA=clean_val(row.get('DS_GRUPO_NATUREZA')),
+            ED_BAIRRO=clean_val(row.get('ED_BAIRRO')),
+            NO_MUNICIPIO=clean_val(row.get('NO_MUNICIPIO')),
+            DT_OCORRENCIA=clean_val(row.get('DT_OCORRENCIA')),
+            SN_TENTATIVA=int(float(row.get('SN_TENTATIVA'))) if pd.notna(row.get('SN_TENTATIVA')) and row.get('SN_TENTATIVA') != '' else None,
+            SN_MARIA_DA_PENHA=int(float(row.get('SN_MARIA_DA_PENHA'))) if pd.notna(row.get('SN_MARIA_DA_PENHA')) and row.get('SN_MARIA_DA_PENHA') != '' else None,
+            IN_SITUACAO_ATUAL=clean_val(row.get('IN_SITUACAO_ATUAL')),
+
             ID_OCOR=clean_val(row.get('ID_OCOR')),
             DS_NATUREZA_ATEND=clean_val(row.get('DS_NATUREZA_ATEND')),
             DS_GRUPO_CRIME_ATEND=clean_val(row.get('DS_GRUPO_CRIME_ATEND')),
@@ -89,7 +102,11 @@ def seed_casos(session, csv_path):
             NR_DECLARACAO_OBITO=clean_val(row.get('NR_DECLARACAO_OBITO')),
             SEXO=clean_val(row.get('SEXO')),
             ETNIA=clean_val(row.get('ETNIA')),
-            NASCIMENTO=clean_val(row.get('NASCIMENTO'))
+            NASCIMENTO=clean_val(row.get('NASCIMENTO')),
+            STATUS_IML=clean_val(row.get('STATUS_IML_STAT')),
+            MAE_IML=clean_val(row.get('MAE'))
+
+
         )
         casos_db.append(caso)
     
@@ -226,9 +243,28 @@ def seed_database():
     delta_csv = "data/output/sentinela_relatorio_delta_2025.csv"
     radar_csv = "data/output/sentinela_radar_cad_2025.csv"
     
-    if not os.path.exists(delta_csv):
-        print(f"ERRO: '{delta_csv}' nao encontrado. Rode 'python scripts/cruzamento_delta.py' primeiro.")
-        return
+    if not os.path.exists(delta_csv) or not os.path.exists(radar_csv):
+        print("\n[!] Arquivos finais nao encontrados em data/output/.")
+        print("    Iniciando geracao de dados mock e processamento do pipeline...")
+        try:
+            # 1. Gerar dados mock iniciais
+            from scripts.generate_mock_data import generate_mock_data
+            generate_mock_data()
+            
+            # 2. Rodar o cruzamento delta
+            from scripts.cruzamento_delta import run_delta_v3
+            run_delta_v3()
+            
+            # 3. Rodar o radar cad
+            from scripts.radar_cad import run_radar_cad
+            run_radar_cad()
+            
+            print("\n[OK] Pipeline de processamento executado com sucesso!")
+        except Exception as e:
+            print(f"\n[ERRO] Falha ao executar pipeline automaticamente: {e}")
+            import traceback
+            traceback.print_exc()
+            return
     
     # Limpar banco existente
     db_path = "sentinela.db"
@@ -254,7 +290,15 @@ def seed_database():
         # 3. Radar CAD
         seed_radar(session, radar_csv)
         
+        # 4. Executar reconciliação de dados local
+        print("\n--- Executando Reconciliador de Dados (Motor local) ---")
+        from agents.reconciliation_agent.orchestrator import ReconciliationOrchestrator
+        orch = ReconciliationOrchestrator()
+        res = orch.run_reconciliation(session)
+        print(f"  Resultado do Reconciliador: {res}")
+        
     except Exception as e:
+
         session.rollback()
         print(f"\nERRO durante a sementeira: {e}")
         import traceback
