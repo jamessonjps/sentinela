@@ -4,6 +4,7 @@ from sqlalchemy import func
 from typing import Any, Dict, List, Optional
 from ..database import get_db
 from ..models import SentinelaFilaAlertas, VwSentinelaCasoCompleto
+from .analise import executar_validacao_geografica
 
 router = APIRouter()
 
@@ -167,6 +168,7 @@ def get_alerta_detalhe(alerta_id: int, db: Session = Depends(get_db)):
         )
         
     alerta, caso = result
+    geo_val = executar_validacao_geografica(caso, db)
     return {
         "id_alerta": alerta.ID_ALERTA,
         "id_controle_morte": alerta.ID_CONTROLE_MORTE,
@@ -178,6 +180,7 @@ def get_alerta_detalhe(alerta_id: int, db: Session = Depends(get_db)):
         "tipo_alerta": alerta.TIPO_ALERTA,
         "data_criacao": alerta.DT_CRIACAO.isoformat() if alerta.DT_CRIACAO else None,
         "data_atualizacao": alerta.DT_ATUALIZACAO.isoformat() if alerta.DT_ATUALIZACAO else None,
+        "geo_validacao": geo_val,
         
         "caso": {
             "id_controle_morte": caso.ID_CONTROLE_MORTE,

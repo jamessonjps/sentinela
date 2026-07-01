@@ -79,6 +79,9 @@ class VwSentinelaCasoCompleto(Base):
     STATUS_IML = Column(String(100))
     MAE_IML = Column(String(255))
     IML_ENTRADA = Column(String(100))
+    ORGAO_REQUERENTE = Column(String(255))
+    REQUERENTE_OUTROS = Column(String(255))
+
 
 
 
@@ -168,5 +171,29 @@ class SentinelaNotificacaoIML(Base):
     TIPO_MENSAGEM = Column(String(255), nullable=False)
     DT_EVENTO = Column(DateTime, default=func.now())
     LIDO = Column(Integer, default=0, index=True) # 0 ou 1
+
+
+class SentinelaGeoBairro(Base):
+    __tablename__ = "SENTINELA_GEO_BAIRRO"
+    
+    ID_BAIRRO = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    NOME_BAIRRO = Column(String(150), nullable=False)
+    NOME_MUNICIPIO = Column(String(150), nullable=False)
+    CENTRO_LATITUDE = Column(Float, nullable=False)
+    CENTRO_LONGITUDE = Column(Float, nullable=False)
+    RAIO_KM = Column(Float, default=1.5)
+
+
+class SentinelaEstabelecimentoSaude(Base):
+    __tablename__ = "SENTINELA_ESTABELECIMENTO_SAUDE"
+    
+    ID_ESTABELECIMENTO = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    NOME = Column(String(255), nullable=False)
+    LATITUDE = Column(Float, nullable=False)
+    LONGITUDE = Column(Float, nullable=False)
+    RAIO_METROS = Column(Float, default=150.0)
+    TIPO = Column(String(50), default="SAUDE")
+
+
 
 

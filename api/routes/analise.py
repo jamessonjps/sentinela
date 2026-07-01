@@ -12,12 +12,101 @@ from ..models import (
     SentinelaFilaAlertas, 
     SentinelaReconciliacaoLog,
     SentinelaEvolucaoPendente,
-    SentinelaNotificacaoIML
+    SentinelaNotificacaoIML,
+    SentinelaGeoBairro,
+    SentinelaEstabelecimentoSaude
 )
 from agents.reconciliation_agent.orchestrator import ReconciliationOrchestrator
 from agents.reconciliation_agent.field_rules import match_names, jaro_winkler_score, parse_date, normalize_text
 
 router = APIRouter()
+
+def calcular_distancia_metros(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calcula a distância em metros entre dois pontos geográficos usando Haversine.
+    """
+    if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
+        return 999999.0
+    R = 6371000.0  # Raio da Terra em metros
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    
+    a = math.sin(dlat / 2.0) ** 2 + \
+        math.cos(phi1) * math.cos(phi2) * \
+        math.sin(dlon / 2.0) ** 2
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    return R * c
+
+def executar_validacao_geografica(caso, db: Session) -> dict:
+    """
+    Executa a validação geográfica de um caso contra centróides de bairros,
+    locais de interesse (hospitais, UPAs, presídios) e procedência da tabela IML.
+    """
+    lat = caso.NR_COOR_LATD or (float(caso.LATITUDE) if caso.LATITUDE else None)
+    lon = caso.NR_COOR_LONG or (float(caso.LONGITUDE) if caso.LONGITUDE else None)
+    
+    result = {
+        "alerta_geografico": False,
+        "bairro_divergente": False,
+        "fato_em_hospital": False,
+        "hospital_nome": None,
+        "fato_em_presidio": False,
+        "presidio_nome": None,
+        "procedencia_prisional": False,
+        "orgao_procedencia": None,
+        "bairro_cadastrado": caso.BAIRRO_FATO,
+        "bairro_gps_centro": None,
+        "gps_latitude": lat,
+        "gps_longitude": lon
+    }
+    
+    # 1. Analisa procedência do IML para capturar óbitos no sistema prisional
+    terms = ["presidio", "penitenciaria", "prisional", "baldomero", "agreste", "cyridiao", "santa luzia"]
+    for field in [caso.ORGAO_REQUERENTE, caso.REQUERENTE_OUTROS]:
+        if field:
+            val_lower = str(field).lower()
+            if any(t in val_lower for t in terms):
+                result["alerta_geografico"] = True
+                result["procedencia_prisional"] = True
+                result["orgao_procedencia"] = str(field)
+                break
+                
+    if lat is None or lon is None:
+        return result
+        
+    # 2. Verifica se a coordenada caiu dentro de um local de interesse (hospital/UPA ou presídio)
+    locais_interesse = db.query(SentinelaEstabelecimentoSaude).all()
+    for loc in locais_interesse:
+        dist = calcular_distancia_metros(lat, lon, loc.LATITUDE, loc.LONGITUDE)
+        if dist <= loc.RAIO_METROS:
+            result["alerta_geografico"] = True
+            if getattr(loc, "TIPO", "SAUDE") == "PRESIDIO":
+                result["fato_em_presidio"] = True
+                result["presidio_nome"] = loc.NOME
+            else:
+                result["fato_em_hospital"] = True
+                result["hospital_nome"] = loc.NOME
+            break
+            
+    # 3. Verifica se a coordenada caiu fora da área de abrangência do bairro cadastrado
+    if caso.BAIRRO_FATO and caso.CIDADE_FATO:
+        bairro_geo = db.query(SentinelaGeoBairro).filter(
+            SentinelaGeoBairro.NOME_BAIRRO.ilike(f"%{caso.BAIRRO_FATO}%"),
+            SentinelaGeoBairro.NOME_MUNICIPIO.ilike(f"%{caso.CIDADE_FATO}%")
+        ).first()
+        
+        if bairro_geo:
+            result["bairro_gps_centro"] = [bairro_geo.CENTRO_LATITUDE, bairro_geo.CENTRO_LONGITUDE]
+            dist_km = calcular_distancia_metros(lat, lon, bairro_geo.CENTRO_LATITUDE, bairro_geo.CENTRO_LONGITUDE) / 1000.0
+            if dist_km > bairro_geo.RAIO_KM:
+                result["alerta_geografico"] = True
+                result["bairro_divergente"] = True
+                
+    return result
+
+
 
 class DuplicadoRequest(BaseModel):
     data_fato: str
@@ -440,3 +529,26 @@ def marcar_notificacao_lida(notif_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/validar-geografia/{id_controle_morte}", response_model=Dict[str, Any])
+def validar_geografia_caso(id_controle_morte: int, db: Session = Depends(get_db)):
+    """
+    Endpoint para auditar e expor a validação geográfica de um caso.
+    """
+    caso = db.query(VwSentinelaCasoCompleto).filter_by(ID_CONTROLE_MORTE=id_controle_morte).first()
+    if not caso:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Caso com ID {id_controle_morte} não encontrado."
+        )
+        
+    try:
+        res = executar_validacao_geografica(caso, db)
+        return res
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro durante a validação geográfica: {str(e)}"
+        )
+

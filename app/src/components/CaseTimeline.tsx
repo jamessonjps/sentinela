@@ -5,6 +5,22 @@ import { FileText, AlertTriangle, CheckCircle, RefreshCw, MapPin } from "lucide-
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
+interface GeoValidacao {
+  alerta_geografico: boolean;
+  bairro_divergente: boolean;
+  fato_em_hospital: boolean;
+  hospital_nome?: string | null;
+  fato_em_presidio: boolean;
+  presidio_nome?: string | null;
+  procedencia_prisional: boolean;
+  orgao_procedencia?: string | null;
+  bairro_cadastrado: string;
+  bairro_gps_centro?: [number, number] | null;
+  gps_latitude?: number | null;
+  gps_longitude?: number | null;
+  distancia_bairro_km?: number | null;
+}
+
 interface Alert {
   id_alerta: number;
   id_controle_morte: number;
@@ -28,6 +44,7 @@ interface Alert {
   latitude?: number;
   longitude?: number;
   status_alerta?: string;
+  geo_validacao?: GeoValidacao;
 }
 
 interface CaseTimelineProps {
@@ -180,6 +197,60 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
             </div>
           </div>
         )}
+
+        {/* Alertas de Geovalidação & Sistema Prisional */}
+        {selectedAlert.geo_validacao?.alerta_geografico && (
+          <div className="space-y-2 shrink-0">
+            {/* Presídio */}
+            {(selectedAlert.geo_validacao.fato_em_presidio || selectedAlert.geo_validacao.procedencia_prisional) && (
+              <div className="bg-[var(--color-critical-bg)] border border-[var(--color-critical)]/25 p-3 rounded-sm">
+                <h4 className="text-[10px] font-bold text-[var(--color-critical)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Óbito Prisional (Alto Risco)
+                </h4>
+                <p className="text-[11px] text-paper">
+                  Este óbito foi geolocalizado em presídio ou possui guia requisitada por órgão prisional:
+                </p>
+                <div className="text-[11px] font-mono text-[var(--color-critical)] font-bold mt-1.5 bg-ink/50 p-2 border border-border/40">
+                  {selectedAlert.geo_validacao.fato_em_presidio && (
+                    <div className="block">Local GPS: {selectedAlert.geo_validacao.presidio_nome}</div>
+                  )}
+                  {selectedAlert.geo_validacao.procedencia_prisional && (
+                    <div className="block">Procedência IML: {selectedAlert.geo_validacao.orgao_procedencia}</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Hospital */}
+            {selectedAlert.geo_validacao.fato_em_hospital && (
+              <div className="bg-[var(--color-warning-bg)] border border-[var(--color-warning)]/20 p-3 rounded-sm">
+                <h4 className="text-[10px] font-bold text-[var(--color-warning)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Fato Georreferenciado em Hospital
+                </h4>
+                <p className="text-[11px] text-slate">
+                  As coordenadas de GPS apontam para a unidade de socorro: <strong className="text-paper">{selectedAlert.geo_validacao.hospital_nome}</strong>. 
+                  Recomenda-se auditar o local real do fato com os analistas de geografia.
+                </p>
+              </div>
+            )}
+
+            {/* Bairro Divergente */}
+            {selectedAlert.geo_validacao.bairro_divergente && (
+              <div className="bg-[var(--color-warning-bg)] border border-[var(--color-warning)]/20 p-3 rounded-sm">
+                <h4 className="text-[10px] font-bold text-[var(--color-warning)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Inconsistência de Bairro (GPS)
+                </h4>
+                <p className="text-[11px] text-slate">
+                  O registro indica o bairro <strong className="text-paper">{selectedAlert.geo_validacao.bairro_cadastrado}</strong>, mas as coordenadas GPS do fato caem a mais de <strong className="text-paper">{(selectedAlert.geo_validacao.distancia_bairro_km || 1.5).toFixed(1)} km</strong> do centro geométrico esperado.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
 
         {/* Informações dos Sistemas Relacionados */}
         <div className="border border-border rounded-sm p-3 bg-surface-raised/15 space-y-2.5">

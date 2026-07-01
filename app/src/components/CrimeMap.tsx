@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { AlertTriangle } from "lucide-react";
@@ -10,9 +10,14 @@ import { Card } from "@/components/ui/Card";
 
 // Corrige problemas de ícones padrão do Leaflet no Next.js
 const createCustomIcon = (color: string = "blue") => {
-  const iconUrl = color === "blue" 
-    ? "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png"
-    : "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png";
+  let iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png";
+  if (color === "red") {
+    iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png";
+  } else if (color === "orange") {
+    iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png";
+  } else if (color === "green") {
+    iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png";
+  }
     
   return new L.Icon({
     iconUrl,
@@ -23,6 +28,22 @@ const createCustomIcon = (color: string = "blue") => {
     shadowSize: [41, 41]
   });
 };
+
+interface GeoValidacao {
+  alerta_geografico: boolean;
+  bairro_divergente: boolean;
+  fato_em_hospital: boolean;
+  hospital_nome?: string | null;
+  fato_em_presidio: boolean;
+  presidio_nome?: string | null;
+  procedencia_prisional: boolean;
+  orgao_procedencia?: string | null;
+  bairro_cadastrado: string;
+  bairro_gps_centro?: [number, number] | null;
+  gps_latitude?: number | null;
+  gps_longitude?: number | null;
+  distancia_bairro_km?: number | null;
+}
 
 interface Alert {
   id_alerta: number;
@@ -37,6 +58,7 @@ interface Alert {
   nic?: string;
   latitude?: number;
   longitude?: number;
+  geo_validacao?: GeoValidacao;
 }
 
 interface CrimeMapProps {
@@ -161,23 +183,59 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
           })}
 
           {/* Marcador do Caso Selecionado */}
-          {hasValidCoordinates && selectedAlert.latitude && selectedAlert.longitude && (
-            <>
-              <Marker position={activePosition} icon={createCustomIcon("blue")}>
-                <Popup>
-                  <div className="font-sans text-[#12151C] p-2 text-xs">
-                    <strong className="text-sm font-semibold block text-[var(--color-focus)] mb-1">Caso em Auditoria</strong>
-                    <p className="m-0 font-medium">Alerta: {selectedAlert.tipo_alerta}</p>
-                    <p className="m-0 mt-1 text-[#5C6379]">Local: {selectedAlert.bairro}, {selectedAlert.cidade}</p>
-                    {selectedAlert.cad && (
-                      <p className="m-0 mt-1.5 font-mono text-[10px] bg-slate-100 p-1 rounded border">CAD: {selectedAlert.cad}</p>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-              <MapController lat={selectedAlert.latitude} lng={selectedAlert.longitude} />
-            </>
-          )}
+          {hasValidCoordinates && selectedAlert.latitude && selectedAlert.longitude && (() => {
+            const isPrison = selectedAlert.geo_validacao?.fato_em_presidio || selectedAlert.geo_validacao?.procedencia_prisional;
+            const isHospital = selectedAlert.geo_validacao?.fato_em_hospital;
+            const markerColor = isPrison ? "red" : isHospital ? "orange" : "blue";
+            const bairroCentro: [number, number] | null = selectedAlert.geo_validacao?.bairro_gps_centro;
+            
+            return (
+              <>
+                <Marker position={activePosition} icon={createCustomIcon(markerColor)}>
+                  <Popup>
+                    <div className="font-sans text-[#12151C] p-2 text-xs">
+                      <strong className="text-sm font-semibold block text-[var(--color-focus)] mb-1">Caso em Auditoria</strong>
+                      <p className="m-0 font-medium">Alerta: {selectedAlert.tipo_alerta}</p>
+                      <p className="m-0 mt-1 text-[#5C6379]">Local: {selectedAlert.bairro}, {selectedAlert.cidade}</p>
+                      {isPrison && (
+                        <p className="m-0 mt-1 text-[var(--color-critical)] font-bold">⚠️ Óbito no Sistema Prisional</p>
+                      )}
+                      {isHospital && (
+                        <p className="m-0 mt-1 text-[var(--color-warning)] font-bold">⚠️ Fato registrado em Hospital</p>
+                      )}
+                      {selectedAlert.cad && (
+                        <p className="m-0 mt-1.5 font-mono text-[10px] bg-slate-100 p-1 rounded border">CAD: {selectedAlert.cad}</p>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+                
+                {/* Linha pontilhada conectando ao centro do bairro esperado em caso de divergência */}
+                {selectedAlert.geo_validacao?.bairro_divergente && bairroCentro && (
+                  <>
+                    <Polyline 
+                      positions={[activePosition, bairroCentro]} 
+                      pathOptions={{
+                        color: "var(--color-warning)",
+                        dashArray: "5, 10",
+                        weight: 2
+                      }}
+                    />
+                    <Marker position={bairroCentro} icon={createCustomIcon("green")}>
+                      <Popup>
+                        <div className="font-sans text-[#12151C] p-1.5 text-xs">
+                          <strong className="block text-[var(--color-ok)] font-bold mb-1">Centro Esperado</strong>
+                          <p className="m-0">Bairro cadastrado: {selectedAlert.geo_validacao.bairro_cadastrado}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  </>
+                )}
+                
+                <MapController lat={selectedAlert.latitude} lng={selectedAlert.longitude} />
+              </>
+            );
+          })()}
         </MapContainer>
         
         {/* Banner Indicativo de Falha de GPS */}

@@ -112,6 +112,145 @@ def seed_casos(session, csv_path):
     session.bulk_save_objects(casos_db)
     session.commit()
     print(f"  Inseridos {len(casos_db):,} registros em VW_SENTINELA_CASO_COMPLETO.")
+    
+    # Inserir Casos Mocks específicos para teste de Geovalidação
+    caso_hge = VwSentinelaCasoCompleto(
+        ID_CONTROLE_MORTE=99901,
+        SUBJETIVIDADE="CVLI HOMICIDIO",
+        TIPO_MVI="HOMICÍDIO TIPO HGE",
+        EH_MVI=True,
+        CAD="CAD-2026-HGE-001",
+        NIC="NIC-2026-HGE-001",
+        CIDADE_FATO="MACEIO",
+        BAIRRO_FATO="CENTRO",
+        DATA_HORA_FATO="2026-06-28 22:30:00",
+        INSTRUMENTO_UTILIZADO="ARMA DE FOGO",
+        MOTIV_INICIAL="DISCUSSÃO",
+        AISP="AISP 1",
+        RISP="RISP 1",
+        STATUS="EM APURACAO",
+        NOME_VITIMA="VÍTIMA MOCK GEIVALIDAÇÃO HGE",
+        SEXO_VITIMA="M",
+        MAE_VITIMA="MAE HGE",
+        NASC_VITIMA="1990-01-01",
+        COR_RACA_VITIMA="PARDA",
+        NOM_VITIMA_IML="VÍTIMA MOCK GEIVALIDAÇÃO HGE",
+        ALERTA_BO_INEXISTENTE="NAO",
+        ALERTA_NATUREZA_DIVERGENTE="OK",
+        ALERTA_CAD_FALTANTE="NAO",
+        ALERTA_DO_IML_VAZIA="OK",
+        ALERTA_NIC_FALTANTE="NAO",
+        ALERTA_NOME_DIVERGENTE="OK",
+        ID_OCOR=99901.0,
+        DS_NATUREZA_ATEND="HOMICIDIO",
+        DS_GRUPO_CRIME_ATEND="VIOLENCIA",
+        NR_COOR_LATD=-9.6582, # HGE
+        NR_COOR_LONG=-35.7441, # HGE
+        NIC_IML="NIC-2026-HGE-001",
+        TIPO_MORTE="VIOLENTA",
+        NR_DECLARACAO_OBITO="DO-2026-HGE-001",
+        SEXO="M",
+        ETNIA="PARDA",
+        NASCIMENTO="1990-01-01",
+        STATUS_IML="CONCLUIDA",
+        MAE_IML="MAE HGE",
+        IML_ENTRADA="2026-06-28 23:00:00"
+    )
+
+    caso_div = VwSentinelaCasoCompleto(
+        ID_CONTROLE_MORTE=99902,
+        SUBJETIVIDADE="CVLI HOMICIDIO",
+        TIPO_MVI="HOMICÍDIO TIPO INCONSISTENCIA",
+        EH_MVI=True,
+        CAD="CAD-2026-GEO-002",
+        NIC="NIC-2026-GEO-002",
+        CIDADE_FATO="MACEIO",
+        BAIRRO_FATO="JACINTINHO",
+        DATA_HORA_FATO="2026-06-29 01:15:00",
+        INSTRUMENTO_UTILIZADO="ARMA BRANCA",
+        MOTIV_INICIAL="RIXA",
+        AISP="AISP 2",
+        RISP="RISP 2",
+        STATUS="EM APURACAO",
+        NOME_VITIMA="VÍTIMA MOCK BAIRRO INCONSISTENTE",
+        SEXO_VITIMA="M",
+        MAE_VITIMA="MAE INCONSISTENTE",
+        NASC_VITIMA="1995-05-15",
+        COR_RACA_VITIMA="BRANCA",
+        NOM_VITIMA_IML="VÍTIMA MOCK BAIRRO INCONSISTENTE",
+        ALERTA_BO_INEXISTENTE="NAO",
+        ALERTA_NATUREZA_DIVERGENTE="OK",
+        ALERTA_CAD_FALTANTE="NAO",
+        ALERTA_DO_IML_VAZIA="OK",
+        ALERTA_NIC_FALTANTE="NAO",
+        ALERTA_NOME_DIVERGENTE="OK",
+        ID_OCOR=99902.0,
+        DS_NATUREZA_ATEND="HOMICIDIO",
+        DS_GRUPO_CRIME_ATEND="VIOLENCIA",
+        NR_COOR_LATD=-9.5492, # Benedito Bentes (Inconsistente com Jacintinho!)
+        NR_COOR_LONG=-35.7335, # Benedito Bentes
+        NIC_IML="NIC-2026-GEO-002",
+        TIPO_MORTE="VIOLENTA",
+        NR_DECLARACAO_OBITO="DO-2026-GEO-002",
+        SEXO="M",
+        ETNIA="BRANCA",
+        NASCIMENTO="1995-05-15",
+        STATUS_IML="CONCLUIDA",
+        MAE_IML="MAE INCONSISTENTE",
+        IML_ENTRADA="2026-06-29 02:00:00"
+    )
+
+    caso_presidio = VwSentinelaCasoCompleto(
+        ID_CONTROLE_MORTE=99903,
+        SUBJETIVIDADE="CVLI HOMICIDIO",
+        TIPO_MVI="HOMICÍDIO TIPO PRESÍDIO",
+        EH_MVI=True,
+        CAD="CAD-2026-PRES-003",
+        NIC="NIC-2026-PRES-003",
+        CIDADE_FATO="MACEIO",
+        BAIRRO_FATO="CIDADE UNIVERSITARIA",
+        DATA_HORA_FATO="2026-06-29 06:20:00",
+        INSTRUMENTO_UTILIZADO="ESTRANGULAMENTO",
+        MOTIV_INICIAL="RIXA INTERNA",
+        AISP="AISP 5",
+        RISP="RISP 1",
+        STATUS="EM APURACAO",
+        NOME_VITIMA="VÍTIMA MOCK PRESÍDIO MACEIÓ",
+        SEXO_VITIMA="M",
+        MAE_VITIMA="MAE PRESIDIO",
+        NASC_VITIMA="1988-08-12",
+        COR_RACA_VITIMA="PRETA",
+        NOM_VITIMA_IML="VÍTIMA MOCK PRESÍDIO MACEIÓ",
+        ALERTA_BO_INEXISTENTE="NAO",
+        ALERTA_NATUREZA_DIVERGENTE="OK",
+        ALERTA_CAD_FALTANTE="NAO",
+        ALERTA_DO_IML_VAZIA="OK",
+        ALERTA_NIC_FALTANTE="NAO",
+        ALERTA_NOME_DIVERGENTE="OK",
+        ID_OCOR=99903.0,
+        DS_NATUREZA_ATEND="HOMICIDIO",
+        DS_GRUPO_CRIME_ATEND="VIOLENCIA",
+        NR_COOR_LATD=-9.548056, # Complexo Prisional
+        NR_COOR_LONG=-35.7775, # Complexo Prisional
+        NIC_IML="NIC-2026-PRES-003",
+        TIPO_MORTE="VIOLENTA",
+        NR_DECLARACAO_OBITO="DO-2026-PRES-003",
+        SEXO="M",
+        ETNIA="PRETA",
+        NASCIMENTO="1988-08-12",
+        STATUS_IML="CONCLUIDA",
+        MAE_IML="MAE PRESIDIO",
+        IML_ENTRADA="2026-06-29 07:15:00",
+        ORGAO_REQUERENTE="PRESÍDIO BALDOMERO CAVALCANTE",
+        REQUERENTE_OUTROS="COMPLEXO PRISIONAL DE MACEIO"
+    )
+
+    session.add(caso_hge)
+    session.add(caso_div)
+    session.add(caso_presidio)
+    session.commit()
+    print("  Inseridos 3 casos mock adicionais (HGE, Bairro Inconsistente, Presídio) para testes de geovalidação.")
+
 
 
 def seed_alertas(session, csv_path):
@@ -181,6 +320,26 @@ def seed_alertas(session, csv_path):
     session.bulk_save_objects(alertas_db)
     session.commit()
     print(f"  Gerados {len(alertas_db):,} alertas na fila.")
+    
+    # Inserir alertas geográficos fictícios correspondentes
+    session.add(SentinelaFilaAlertas(
+        ID_CONTROLE_MORTE=99901, NIC="NIC-2026-HGE-001", BO_PC="BO-2026-HGE-001", CAD="CAD-2026-HGE-001",
+        STATUS="Novo", PRIORIDADE=2,
+        TIPO_ALERTA="Local do Fato aponta para Hospital/UPA (Socorro)"
+    ))
+    session.add(SentinelaFilaAlertas(
+        ID_CONTROLE_MORTE=99902, NIC="NIC-2026-GEO-002", BO_PC="BO-2026-GEO-002", CAD="CAD-2026-GEO-002",
+        STATUS="Novo", PRIORIDADE=1,
+        TIPO_ALERTA="Bairro Divergente das Coordenadas GPS"
+    ))
+    session.add(SentinelaFilaAlertas(
+        ID_CONTROLE_MORTE=99903, NIC="NIC-2026-PRES-003", BO_PC="BO-2026-PRES-003", CAD="CAD-2026-PRES-003",
+        STATUS="Novo", PRIORIDADE=3,
+        TIPO_ALERTA="Óbito em Estabelecimento Prisional"
+    ))
+    session.commit()
+    print("  Inseridos 3 alertas mock geográficos/prisionais adicionais na fila.")
+
 
 
 def seed_radar(session, radar_csv_path):
@@ -306,6 +465,38 @@ def seed_novas_tabelas(session):
     print("  Inseridos dados operacionais em SENTINELA_EVOLUCAO_PENDENTE e SENTINELA_NOTIFICACAO_IML.")
 
 
+def seed_geometria(session):
+    """Insere dados centróides dos bairros e estabelecimentos de saúde no banco local."""
+    print("\n--- Sementeira: DADOS DE REFERÊNCIA GEOGRÁFICA (Geo Bairros & Hospitais) ---")
+    from api.models import SentinelaGeoBairro, SentinelaEstabelecimentoSaude
+    
+    # 1. Bairros
+    bairros = [
+        SentinelaGeoBairro(NOME_BAIRRO="Benedito Bentes", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.5492, CENTRO_LONGITUDE=-35.7335, RAIO_KM=3.5),
+        SentinelaGeoBairro(NOME_BAIRRO="Jacintinho", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.6436, CENTRO_LONGITUDE=-35.7176, RAIO_KM=1.5),
+        SentinelaGeoBairro(NOME_BAIRRO="Centro", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.6644, CENTRO_LONGITUDE=-35.7397, RAIO_KM=1.0),
+        SentinelaGeoBairro(NOME_BAIRRO="Clima Bom", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.5750, CENTRO_LONGITUDE=-35.7720, RAIO_KM=2.0),
+        SentinelaGeoBairro(NOME_BAIRRO="Jatiúca", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.6480, CENTRO_LONGITUDE=-35.7020, RAIO_KM=1.2),
+        SentinelaGeoBairro(NOME_BAIRRO="Ponta Verde", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.6620, CENTRO_LONGITUDE=-35.7010, RAIO_KM=0.8),
+        SentinelaGeoBairro(NOME_BAIRRO="Trapiche da Barra", NOME_MUNICIPIO="MACEIO", CENTRO_LATITUDE=-9.6780, CENTRO_LONGITUDE=-35.7560, RAIO_KM=1.2)
+    ]
+    
+    session.add_all(bairros)
+    
+    # 2. Hospitais / UPAs / Presídios
+    hospitais = [
+        SentinelaEstabelecimentoSaude(NOME="Hospital Geral do Estado (HGE)", LATITUDE=-9.6582, LONGITUDE=-35.7441, RAIO_METROS=150.0, TIPO="HOSPITAL"),
+        SentinelaEstabelecimentoSaude(NOME="UPA Benedito Bentes", LATITUDE=-9.5521, LONGITUDE=-35.7312, RAIO_METROS=120.0, TIPO="UPA"),
+        SentinelaEstabelecimentoSaude(NOME="Hospital de Emergência do Agreste (HEA)", LATITUDE=-9.7540, LONGITUDE=-36.6520, RAIO_METROS=150.0, TIPO="HOSPITAL"),
+        SentinelaEstabelecimentoSaude(NOME="Complexo Prisional de Maceió", LATITUDE=-9.548056, LONGITUDE=-35.7775, RAIO_METROS=450.0, TIPO="PRESIDIO"),
+        SentinelaEstabelecimentoSaude(NOME="Presídio do Agreste (Girau/Craíbas)", LATITUDE=-9.8510, LONGITUDE=-36.8340, RAIO_METROS=300.0, TIPO="PRESIDIO")
+    ]
+    
+    session.add_all(hospitais)
+    session.commit()
+    print("  Inseridos dados de referência geográfica (incluindo presídios) com sucesso.")
+
+
 def seed_database():
     print("=" * 60)
     print("  SENTINELA - Sementeira Completa do Banco SQLite")
@@ -365,7 +556,10 @@ def seed_database():
         # 4. Novas tabelas operacionais
         seed_novas_tabelas(session)
         
-        # 5. Executar reconciliação de dados local
+        # 5. Tabelas de geometria e estabelecimentos de saúde
+        seed_geometria(session)
+        
+        # 6. Executar reconciliação de dados local
         print("\n--- Executando Reconciliador de Dados (Motor local) ---")
         from agents.reconciliation_agent.orchestrator import ReconciliationOrchestrator
         orch = ReconciliationOrchestrator()
