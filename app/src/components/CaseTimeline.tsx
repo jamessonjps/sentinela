@@ -21,6 +21,15 @@ interface GeoValidacao {
   distancia_bairro_km?: number | null;
 }
 
+interface LaudoPericial {
+  numero_protocolo: string;
+  tipo_exame: string;
+  data_exame: string;
+  perito_legista: string;
+  conclusao: string;
+  paciente: string;
+}
+
 interface Alert {
   id_alerta: number;
   id_controle_morte: number;
@@ -45,6 +54,7 @@ interface Alert {
   longitude?: number;
   status_alerta?: string;
   geo_validacao?: GeoValidacao;
+  laudo?: LaudoPericial;
 }
 
 interface CaseTimelineProps {
@@ -251,6 +261,80 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
           </div>
         )}
 
+        {/* Alertas Críticos de Laudos do IML */}
+        {selectedAlert.laudo && (
+          <div className="space-y-2 shrink-0">
+            {/* Divergência de Causa Mortis */}
+            {selectedAlert.tipo_alerta && selectedAlert.tipo_alerta.toLowerCase().includes("causa da morte") && (
+              <div className="bg-[var(--color-critical-bg)] border border-[var(--color-critical)]/25 p-3 rounded-sm">
+                <h4 className="text-[10px] font-bold text-[var(--color-critical)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Divergência Crítica de Causa Mortis
+                </h4>
+                <p className="text-[11px] text-paper">
+                  Conclusão pericial é incompatível com a subjetividade registrada no caso:
+                </p>
+                <div className="text-[11px] font-mono mt-1.5 bg-ink/50 p-2.5 border border-border/40 space-y-1">
+                  <div>
+                    <span className="text-slate text-[9px] block uppercase">Subjetividade Mestra:</span>
+                    <span className="text-paper font-bold block">{selectedAlert.subjetividade || "N/A"}</span>
+                  </div>
+                  <div className="pt-1.5 border-t border-border/20">
+                    <span className="text-slate text-[9px] block uppercase">Conclusão do Laudo IML:</span>
+                    <span className="text-[var(--color-critical)] font-bold block leading-relaxed">{selectedAlert.laudo.conclusao}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Divergência de Identidade no Laudo */}
+            {selectedAlert.tipo_alerta && selectedAlert.tipo_alerta.toLowerCase().includes("identidade no laudo") && (
+              <div className="bg-[var(--color-warning-bg)] border border-[var(--color-warning)]/20 p-3 rounded-sm">
+                <h4 className="text-[10px] font-bold text-[var(--color-warning)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Divergência de Nome no Laudo
+                </h4>
+                <p className="text-[11px] text-slate mb-1.5">
+                  Divergência fonética entre o cadastro principal e o laudo pericial:
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-[11px] bg-ink/50 p-2 border border-border/40 font-mono">
+                  <div>
+                    <span className="text-slate text-[9px] block uppercase">Nome Mestra:</span>
+                    <span className="text-paper font-bold block truncate">{selectedAlert.nome_vitima_cm || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate text-[9px] block uppercase">Paciente no Laudo:</span>
+                    <span className="text-[var(--color-warning)] font-bold block truncate">{selectedAlert.laudo.paciente || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Card Detalhado do Laudo Pericial */}
+            <div className="border border-border rounded-sm p-3 bg-surface-raised/15 space-y-2">
+              <div className="text-[10px] text-slate uppercase tracking-wider font-bold flex items-center justify-between">
+                <span>Laudo de Necropsia (Forensis)</span>
+                <span className="text-focus text-[9px] font-mono">{selectedAlert.laudo.numero_protocolo}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] bg-ink/75 p-2 rounded-sm border border-border/40">
+                <div>
+                  <span className="text-slate text-[9px] block uppercase">Perito Legista:</span>
+                  <span className="text-paper font-medium block truncate">{selectedAlert.laudo.perito_legista || "N/A"}</span>
+                </div>
+                <div>
+                  <span className="text-slate text-[9px] block uppercase">Data do Exame:</span>
+                  <span className="text-paper font-medium block truncate">{selectedAlert.laudo.data_exame || "N/A"}</span>
+                </div>
+              </div>
+              <div className="bg-ink/50 p-2.5 rounded-sm border border-border/40 text-[11px]">
+                <span className="text-slate text-[9px] block uppercase mb-1">Discussão e Conclusão Pericial:</span>
+                <p className="text-paper font-medium leading-relaxed m-0 italic">
+                  &quot;{selectedAlert.laudo.conclusao}&quot;
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Informações dos Sistemas Relacionados */}
         <div className="border border-border rounded-sm p-3 bg-surface-raised/15 space-y-2.5">

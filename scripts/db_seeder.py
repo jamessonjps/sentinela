@@ -497,6 +497,70 @@ def seed_geometria(session):
     print("  Inseridos dados de referência geográfica (incluindo presídios) com sucesso.")
 
 
+def seed_laudos(session):
+    """Insere laudos periciais fictícios para testar a reconciliação (Forensis)."""
+    print("\n--- Sementeira: LAUDOS DO IML (Forensis) ---")
+    from api.models import SentinelaLaudoIML
+    
+    laudos = [
+        SentinelaLaudoIML(
+            NIC="NIC-2026-HGE-001",
+            COD_REQUISICAO="CAD-2026-HGE-001",
+            DATA_CADASTRO="2026-06-29 03:00:00",
+            DATA_EXAME="2026-06-29 05:00:00",
+            CONCLUSAO="ÓBITO POR CHOQUE HIPOVOLÊMICO SECUNDÁRIO A FERIMENTOS PENETRANTES POR PROJÉTEIS DE ARMA DE FOGO (PAF). HOMICÍDIO.",
+            NUMERO_PROTOCOLO="LAUDO-2026-001",
+            TIPO_EXAME="NECROPSIA",
+            PACIENTE="VÍTIMA MOCK HGE",
+            PERITO_LEGISTA="Dr. Carlos Eduardo (CRM/AL 9988)",
+            ORGAO_DESTINO="DHPP MACEIO"
+        ),
+        # Divergência de Causa Mortis (Suicídio no Laudo, mas CVLI na Controle Morte)
+        SentinelaLaudoIML(
+            NIC="NIC-2026-GEO-002",
+            COD_REQUISICAO="CAD-2026-GEO-002",
+            DATA_CADASTRO="2026-06-29 04:00:00",
+            DATA_EXAME="2026-06-29 06:15:00",
+            CONCLUSAO="ASFIXIA MECÂNICA COMPATÍVEL COM ENFORCAMENTO. INDÍCIOS TÉCNICOS FORTES DE SUICÍDIO.",
+            NUMERO_PROTOCOLO="LAUDO-2026-002",
+            TIPO_EXAME="NECROPSIA",
+            PACIENTE="VÍTIMA MOCK GEO DIVERGENTE",
+            PERITO_LEGISTA="Dra. Flávia Albuquerque (CRM/AL 5543)",
+            ORGAO_DESTINO="1º DISTRITO POLICIAL"
+        ),
+        SentinelaLaudoIML(
+            NIC="NIC-2026-PRES-003",
+            COD_REQUISICAO="CAD-2026-PRES-003",
+            DATA_CADASTRO="2026-06-29 07:30:00",
+            DATA_EXAME="2026-06-29 09:00:00",
+            CONCLUSAO="TRAUMATISMO CRANIOENCEFÁLICO DEVIDO A AÇÃO DE INSTRUMENTO CONTUNDENTE. AGRESSÃO FÍSICA.",
+            NUMERO_PROTOCOLO="LAUDO-2026-003",
+            TIPO_EXAME="NECROPSIA",
+            PACIENTE="VÍTIMA MOCK PRESÍDIO MACEIÓ",
+            PERITO_LEGISTA="Dr. Carlos Eduardo (CRM/AL 9988)",
+            ORGAO_DESTINO="DELEGACIA DE HOMICÍDIOS"
+        ),
+        # Divergência Fonética de Nome
+        SentinelaLaudoIML(
+            NIC="NIC-2025-60400",
+            COD_REQUISICAO="160400.0",
+            DATA_CADASTRO="2025-04-14 20:00:00",
+            DATA_EXAME="2025-04-14 22:00:00",
+            CONCLUSAO="ASFIXIA MECÂNICA POR ESTRANGULAMENTO. COMPATÍVEL COM MVI.",
+            NUMERO_PROTOCOLO="LAUDO-2025-60400",
+            TIPO_EXAME="NECROPSIA",
+            PACIENTE="VITIMA DE HOMICIDIO ERRO NOME SEMENTEIRA",
+            PERITO_LEGISTA="Dra. Maria Mendes (CRM/AL 1234)",
+            ORGAO_DESTINO="DELEGACIA DE RIO LARGO"
+        )
+    ]
+    
+    session.add_all(laudos)
+    session.commit()
+    print("  Inseridos 4 laudos periciais de teste (Forensis) com sucesso.")
+
+
+
 def seed_database():
     print("=" * 60)
     print("  SENTINELA - Sementeira Completa do Banco SQLite")
@@ -558,6 +622,9 @@ def seed_database():
         
         # 5. Tabelas de geometria e estabelecimentos de saúde
         seed_geometria(session)
+        
+        # 5.1. Tabela de laudos periciais do IML (Forensis)
+        seed_laudos(session)
         
         # 6. Executar reconciliação de dados local
         print("\n--- Executando Reconciliador de Dados (Motor local) ---")

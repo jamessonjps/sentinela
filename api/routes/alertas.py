@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import Any, Dict, List, Optional
 from ..database import get_db
-from ..models import SentinelaFilaAlertas, VwSentinelaCasoCompleto
+from ..models import SentinelaFilaAlertas, VwSentinelaCasoCompleto, SentinelaLaudoIML
 from .analise import executar_validacao_geografica
 
 router = APIRouter()
@@ -169,6 +169,24 @@ def get_alerta_detalhe(alerta_id: int, db: Session = Depends(get_db)):
         
     alerta, caso = result
     geo_val = executar_validacao_geografica(caso, db)
+    
+    # Busca laudo pericial correspondente
+    laudo_obj = db.query(SentinelaLaudoIML).filter(
+        (SentinelaLaudoIML.NIC == caso.NIC) |
+        (SentinelaLaudoIML.NIC == caso.NIC_IML)
+    ).first()
+    
+    laudo_dict = None
+    if laudo_obj:
+        laudo_dict = {
+            "numero_protocolo": laudo_obj.NUMERO_PROTOCOLO,
+            "tipo_exame": laudo_obj.TIPO_EXAME,
+            "data_exame": laudo_obj.DATA_EXAME,
+            "perito_legista": laudo_obj.PERITO_LEGISTA,
+            "conclusao": laudo_obj.CONCLUSAO,
+            "paciente": laudo_obj.PACIENTE
+        }
+        
     return {
         "id_alerta": alerta.ID_ALERTA,
         "id_controle_morte": alerta.ID_CONTROLE_MORTE,
@@ -181,6 +199,7 @@ def get_alerta_detalhe(alerta_id: int, db: Session = Depends(get_db)):
         "data_criacao": alerta.DT_CRIACAO.isoformat() if alerta.DT_CRIACAO else None,
         "data_atualizacao": alerta.DT_ATUALIZACAO.isoformat() if alerta.DT_ATUALIZACAO else None,
         "geo_validacao": geo_val,
+        "laudo": laudo_dict,
         
         "caso": {
             "id_controle_morte": caso.ID_CONTROLE_MORTE,

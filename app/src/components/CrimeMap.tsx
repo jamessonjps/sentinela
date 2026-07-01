@@ -187,7 +187,7 @@ export default function CrimeMap({ selectedAlert }: CrimeMapProps) {
             const isPrison = selectedAlert.geo_validacao?.fato_em_presidio || selectedAlert.geo_validacao?.procedencia_prisional;
             const isHospital = selectedAlert.geo_validacao?.fato_em_hospital;
             const markerColor = isPrison ? "red" : isHospital ? "orange" : "blue";
-            const bairroCentro: [number, number] | null = selectedAlert.geo_validacao?.bairro_gps_centro;
+            const bairroCentro: [number, number] | null = selectedAlert.geo_validacao?.bairro_gps_centro ?? null;
             
             return (
               <>

@@ -195,5 +195,25 @@ class SentinelaEstabelecimentoSaude(Base):
     TIPO = Column(String(50), default="SAUDE")
 
 
+class SentinelaLaudoIML(Base):
+    __tablename__ = "SENTINELA_LAUDOS_IML"
+    
+    ID_EXAME = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    NIC = Column(String(100), nullable=False, index=True)
+    DATA_CADASTRO = Column(String(100))
+    COD_REQUISICAO = Column(String(100), index=True)
+    DATA_EXAME = Column(String(100))
+    CONCLUSAO = Column(String(4000))
+    NUMERO_PROTOCOLO = Column(String(100))
+    TIPO_EXAME = Column(String(100))
+    PACIENTE = Column(String(255))
+    DATA_NASCIMENTO = Column(String(100))
+    PAI = Column(String(255))
+    MAE = Column(String(255))
+    PERITO_LEGISTA = Column(String(255))
+    ORGAO_DESTINO = Column(String(255))
+
+
+
 
 

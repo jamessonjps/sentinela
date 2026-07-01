@@ -3,19 +3,21 @@ from sqlalchemy.orm import Session
 from .iml_comparator import IMLComparator
 from .cad_comparator import CADComparator
 from .ppe_comparator import PPEComparator
+from .laudo_comparator import LaudoComparator
 
 logger = logging.getLogger(__name__)
 
 class ReconciliationOrchestrator:
     """
     Orquestrador central do Motor de Reconciliação do SENTINELA.
-    Gerencia a execução dos comparadores IML, CAD e PPE.
+    Gerencia a execução dos comparadores IML, CAD, PPE e Laudos (Forensis).
     """
 
     def __init__(self):
         self.iml_comp = IMLComparator()
         self.cad_comp = CADComparator()
         self.ppe_comp = PPEComparator()
+        self.laudo_comp = LaudoComparator()
 
     def run_reconciliation(self, session: Session) -> dict:
         """
@@ -37,13 +39,17 @@ class ReconciliationOrchestrator:
             # 3. Comparação PPE
             ppe_div = self.ppe_comp.compare_linked_records(session)
             
+            # 4. Auditoria de Laudos Periciais (Forensis)
+            laudo_div = self.laudo_comp.compare_laudos(session)
+            
             summary = {
                 "status": "success",
                 "iml_divergencias": iml_div,
                 "iml_suspeitas_evolucao": iml_evol,
                 "cad_correlacoes_sugeridas": cad_corr,
                 "ppe_divergencias": ppe_div,
-                "total_alertas_reconciliacao": iml_div + iml_evol + cad_corr + ppe_div
+                "laudo_divergencias": laudo_div,
+                "total_alertas_reconciliacao": iml_div + iml_evol + cad_corr + ppe_div + laudo_div
             }
             
             logger.info("==================================================")
