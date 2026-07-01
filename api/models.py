@@ -78,6 +78,8 @@ class VwSentinelaCasoCompleto(Base):
     NASCIMENTO = Column(String(100))
     STATUS_IML = Column(String(100))
     MAE_IML = Column(String(255))
+    IML_ENTRADA = Column(String(100))
+
 
 
 

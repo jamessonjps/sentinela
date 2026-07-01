@@ -104,9 +104,8 @@ def seed_casos(session, csv_path):
             ETNIA=clean_val(row.get('ETNIA')),
             NASCIMENTO=clean_val(row.get('NASCIMENTO')),
             STATUS_IML=clean_val(row.get('STATUS_IML_STAT')),
-            MAE_IML=clean_val(row.get('MAE'))
-
-
+            MAE_IML=clean_val(row.get('MAE')),
+            IML_ENTRADA=clean_val(row.get('DATA_ENTRADA') or row.get('IML_ENTRADA'))
         )
         casos_db.append(caso)
     
@@ -234,6 +233,79 @@ def seed_radar(session, radar_csv_path):
     print(f"  Inseridos {len(radar_db):,} registros em SENTINELA_RADAR_CAD.")
 
 
+def seed_novas_tabelas(session):
+    """Gera dados mock de propostas de evolução e notificações IML para validação local."""
+    print("\n--- Sementeira: NOVAS TABELAS OPERACIONAIS (Evolução e Notificação) ---")
+    from api.models import SentinelaEvolucaoPendente, SentinelaNotificacaoIML, VwSentinelaCasoCompleto
+    from datetime import timedelta
+    
+    # 1. Tenta recuperar duas tentativas da base para usar IDs de verdade
+    tentativas = session.query(VwSentinelaCasoCompleto).filter(
+        VwSentinelaCasoCompleto.SUBJETIVIDADE.ilike("%TENTATIVA%")
+    ).limit(2).all()
+    
+    id_1 = tentativas[0].ID_CONTROLE_MORTE if len(tentativas) >= 1 else 67066
+    id_2 = tentativas[1].ID_CONTROLE_MORTE if len(tentativas) >= 2 else 67136
+    
+    # Inserir propostas de evolução de exemplo
+    prop_1 = SentinelaEvolucaoPendente(
+        ID_CONTROLE_MORTE=id_1,
+        NIC_IML="NIC-50122",
+        BO_PC="BO-2026-PC-98772",
+        DATA_OBITO=datetime.now() - timedelta(days=2),
+        STATUS="Pendente",
+        MOTIVO="Vítima de tentativa no Jacintinho no dia 20/06, evoluiu a óbito no HGE em 21/06. Consta entrada correspondente no IML.",
+        TIPO_EVOLUCAO="Tentativa -> Óbito",
+        AUTOR_PROPOSTA="Thais Aline"
+    )
+    
+    prop_2 = SentinelaEvolucaoPendente(
+        ID_CONTROLE_MORTE=id_2,
+        NIC_IML="NIC-50289",
+        BO_PC=None,
+        DATA_OBITO=datetime.now() - timedelta(days=1),
+        STATUS="Pendente",
+        MOTIVO="Óbito confirmado. Inexistência temporária de BO de homicídio, apenas BO de desaparecimento anterior.",
+        TIPO_EVOLUCAO="Tentativa -> Óbito",
+        AUTOR_PROPOSTA="Laís Policarpto"
+    )
+    
+    session.add(prop_1)
+    session.add(prop_2)
+    
+    # Inserir notificações de exemplo do IML
+    notif_1 = SentinelaNotificacaoIML(
+        NIC="NIC-50122",
+        NOME_VITIMA="ROSEVALDO MENEZES BATISTA",
+        STATUS_IML="Concluído",
+        TIPO_MENSAGEM="Nova evolução identificada",
+        LIDO=0
+    )
+    
+    notif_2 = SentinelaNotificacaoIML(
+        NIC="NIC-50289",
+        NOME_VITIMA="MARCOS ANTONIO SILVA DA PAZ",
+        STATUS_IML="Entrada",
+        TIPO_MENSAGEM="Corpo registrado sem Declaração de Óbito (DO)",
+        LIDO=0
+    )
+    
+    notif_3 = SentinelaNotificacaoIML(
+        NIC="NIC-49877",
+        NOME_VITIMA="FABRICIO GOMES DOS SANTOS",
+        STATUS_IML="Laudo Pendente",
+        TIPO_MENSAGEM="Corpo identificado no IML",
+        LIDO=0
+    )
+    
+    session.add(notif_1)
+    session.add(notif_2)
+    session.add(notif_3)
+    
+    session.commit()
+    print("  Inseridos dados operacionais em SENTINELA_EVOLUCAO_PENDENTE e SENTINELA_NOTIFICACAO_IML.")
+
+
 def seed_database():
     print("=" * 60)
     print("  SENTINELA - Sementeira Completa do Banco SQLite")
@@ -290,7 +362,10 @@ def seed_database():
         # 3. Radar CAD
         seed_radar(session, radar_csv)
         
-        # 4. Executar reconciliação de dados local
+        # 4. Novas tabelas operacionais
+        seed_novas_tabelas(session)
+        
+        # 5. Executar reconciliação de dados local
         print("\n--- Executando Reconciliador de Dados (Motor local) ---")
         from agents.reconciliation_agent.orchestrator import ReconciliationOrchestrator
         orch = ReconciliationOrchestrator()
