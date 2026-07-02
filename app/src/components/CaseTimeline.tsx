@@ -386,35 +386,15 @@ export function CaseTimeline({ selectedAlert, onStatusChanged }: CaseTimelinePro
         </div>
       </div>
 
-      {/* Ações de Tratamento do Alerta */}
-      <div className="mt-4 pt-4 border-t border-border shrink-0">
-        <div className="flex gap-2">
-          {selectedAlert.status_alerta !== "Resolvido" ? (
-            <>
-              {selectedAlert.status_alerta === "Novo" ? (
-                <button
-                  onClick={() => handleStatusChange("Em Tratativa")}
-                  disabled={updating}
-                  className="flex-1 bg-[var(--color-warning-bg)] hover:bg-[var(--color-warning-bg)]/80 text-[var(--color-warning)] text-xs font-bold py-2 rounded-sm border border-[var(--color-warning)]/30 flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
-                >
-                  {updating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Iniciar Tratativa (NEAC)"}
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleStatusChange("Resolvido")}
-                  disabled={updating}
-                  className="flex-1 bg-[var(--color-ok-bg)] hover:bg-[var(--color-ok-bg)]/80 text-[var(--color-ok)] text-xs font-bold py-2 rounded-sm border border-[var(--color-ok)]/30 flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
-                >
-                  {updating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Resolver Inconsistência"}
-                </button>
-              )}
-            </>
-          ) : (
-            <div className="w-full bg-[var(--color-ok-bg)] border border-[var(--color-ok)]/20 py-2 rounded-sm flex items-center justify-center gap-2 text-[var(--color-ok)] text-xs font-bold">
-              <CheckCircle className="w-4 h-4" />
-              Alerta Resolvido / Auditado
-            </div>
-          )}
+      {/* Informações de Tratamento do Alerta - Somente Leitura */}
+      <div className="mt-4 pt-4 border-t border-border shrink-0 text-center">
+        <div className="bg-ink border border-border p-3 rounded-sm">
+          <span className="text-[9px] text-slate-dim uppercase tracking-widest block font-mono font-bold mb-1">
+            Modo: Consulta de Divergências
+          </span>
+          <p className="text-[10px] text-slate leading-relaxed max-w-[280px] mx-auto m-0">
+            Divergências devem ser corrigidas nos respectivos sistemas de origem (SIESP, PPE, CAD ou IML). O SENTINELA validará e liquidará o alerta automaticamente no próximo ciclo de sincronização.
+          </p>
         </div>
       </div>
     </Card>

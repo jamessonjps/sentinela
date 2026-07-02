@@ -436,43 +436,32 @@ export function RadarCAD({ onStatusChanged }: RadarCADProps) {
               </div>
             </div>
 
-            {/* Botões de Ação */}
-            {selectedItem.status_radar === "Novo" && (
-              <div className="flex gap-2.5 pt-4 border-t border-white/5 mt-auto">
-                <button
-                  disabled={actionLoading}
-                  onClick={() => handleAction(selectedItem.id_radar, "Descartado")}
-                  className="flex-1 bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs font-bold py-2.5 px-3 rounded-xl border border-destructive/20 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Descartar Sinal
-                </button>
-                
-                <button
-                  disabled={actionLoading}
-                  onClick={() => handleAction(selectedItem.id_radar, "Validado")}
-                  className="flex-1 bg-success/20 hover:bg-success/30 text-success text-xs font-bold py-2.5 px-3 rounded-xl border border-success/30 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  <Check className="w-4 h-4" />
-                  Validar / Investigar
-                </button>
-              </div>
-            )}
-
-            {selectedItem.status_radar !== "Novo" && (
-              <div className={`mt-auto p-3.5 rounded-xl border text-center text-xs font-bold ${
-                selectedItem.status_radar === "Validado" 
-                  ? "bg-success/15 border-success/20 text-success" 
-                  : "bg-destructive/15 border-destructive/20 text-destructive"
-              }`}>
-                Ocorrência classificada como **{selectedItem.status_radar}**
-                {selectedItem.dt_validacao && (
-                  <span className="block text-[9px] font-normal text-muted-foreground mt-1">
-                    em {new Date(selectedItem.dt_validacao).toLocaleString("pt-BR")}
+            {/* Status do Sinal do Radar (Somente Leitura) */}
+            <div className="mt-auto pt-4 border-t border-white/5">
+              {selectedItem.status_radar === "Novo" ? (
+                <div className="bg-white/5 border border-white/5 p-3 rounded-xl text-center text-xs">
+                  <span className="text-[9px] text-primary uppercase font-bold tracking-wider block mb-1">
+                    Sinal Pendente de Vínculo
                   </span>
-                )}
-              </div>
-            )}
+                  <p className="text-[10px] text-muted-foreground leading-normal m-0">
+                    Ocorrência sem registro correspondente na base Controle Morte. Vincule este CAD (#{selectedItem.id_ocor}) no SIESP para validá-la automaticamente.
+                  </p>
+                </div>
+              ) : (
+                <div className={`p-3.5 rounded-xl border text-center text-xs font-bold ${
+                  selectedItem.status_radar === "Validado" 
+                    ? "bg-success/15 border-success/20 text-success" 
+                    : "bg-destructive/15 border-destructive/20 text-destructive"
+                }`}>
+                  Sinal {selectedItem.status_radar === "Validado" ? "Confirmado / Vinculado" : "Descartado"}
+                  {selectedItem.dt_validacao && (
+                    <span className="block text-[9px] font-normal text-muted-foreground mt-1">
+                      Processado em {new Date(selectedItem.dt_validacao).toLocaleString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center text-muted-foreground h-full min-h-[500px]">

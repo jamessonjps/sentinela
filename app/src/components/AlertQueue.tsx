@@ -89,9 +89,34 @@ export function AlertQueue({ onSelectAlert, selectedAlertId }: AlertQueueProps) 
     },
     {
       key: "tipo_alerta",
-      label: "ALERTA",
+      label: "DIVERGÊNCIA ENCONTRADA",
       sortable: true,
-      className: "font-semibold text-paper"
+      render: (alert: Alert) => {
+        const parts = (alert.tipo_alerta || "").split(" - ");
+        const title = parts[0];
+        const details = parts.slice(1).join(" - ");
+        
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className="font-bold text-paper text-[12px]">{title}</span>
+            {details && (
+              <span className="text-[10px] text-slate-dim font-mono mt-0.5 bg-ink p-1 rounded-sm border border-border inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-xs" title={details}>
+                {details}
+              </span>
+            )}
+          </div>
+        );
+      },
+      className: "w-1/3"
+    },
+    {
+      key: "nome_vitima",
+      label: "VÍTIMA (CM)",
+      render: (alert: Alert) => (
+        <span className="font-semibold text-[11px] text-slate uppercase">
+          {alert.nome_vitima_cm || `VÍTIMA_${alert.id_controle_morte}`}
+        </span>
+      ),
     },
     {
       key: "id_controle_morte",

@@ -21,7 +21,7 @@ interface DashboardStatsProps {
 
 export function DashboardStats({ stats, radarStats, imlSemDo }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
       <StatBlock
         label="Consolidação MVI"
         value={stats.mvi_total}
@@ -41,26 +41,6 @@ export function DashboardStats({ stats, radarStats, imlSemDo }: DashboardStatsPr
           type: stats.critical_alerts > 0 ? "negative" : "neutral"
         }}
         icon={ShieldAlert}
-      />
-      <StatBlock
-        label="Radar CAD (190 PM)"
-        value={radarStats.novos}
-        description="Eventos sem vínculo na Mestra"
-        change={{
-          value: `${radarStats.alta_prioridade} CVLI-like`,
-          type: "neutral"
-        }}
-        icon={Compass}
-      />
-      <StatBlock
-        label="Qualidade do Dado (IML)"
-        value={imlSemDo}
-        description={`De um total de ${stats.mvi_total} óbitos`}
-        change={{
-          value: "Guia DO vazia",
-          type: imlSemDo > 0 ? "negative" : "neutral"
-        }}
-        icon={FileText}
       />
     </div>
   );

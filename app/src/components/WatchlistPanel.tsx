@@ -27,11 +27,10 @@ interface WatchlistItem {
 }
 
 interface WatchlistPanelProps {
-  onProposeEvolucao: (item: WatchlistItem) => void;
   onRefreshTrigger: number;
 }
 
-export function WatchlistPanel({ onProposeEvolucao, onRefreshTrigger }: WatchlistPanelProps) {
+export function WatchlistPanel({ onRefreshTrigger }: WatchlistPanelProps) {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [auditRunning, setAuditRunning] = useState(false);
@@ -83,13 +82,13 @@ export function WatchlistPanel({ onProposeEvolucao, onRefreshTrigger }: Watchlis
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleRunAudit}
-            disabled={auditRunning}
-            title="Rodar Reconciliador IML"
+            onClick={fetchWatchlist}
+            disabled={loading}
+            title="Atualizar Watchlist"
             className="p-1.5 rounded-sm bg-ink border border-border text-slate hover:text-paper hover:bg-surface disabled:opacity-50 transition-all cursor-pointer flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider"
           >
-            <RefreshCw className={`w-3 h-3 ${auditRunning ? "animate-spin text-focus" : ""}`} />
-            {auditRunning ? "Rodando..." : "Auditar"}
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin text-focus" : ""}`} />
+            {loading ? "Atualizando..." : "Atualizar"}
           </button>
         </div>
       </div>
@@ -140,13 +139,6 @@ export function WatchlistPanel({ onProposeEvolucao, onRefreshTrigger }: Watchlis
                     <Badge variant="critical" className="text-[8px]">
                       Suspeita de Óbito ({item.suspeita_evolucao.score_similaridade}%)
                     </Badge>
-                    <button
-                      onClick={() => onProposeEvolucao(item)}
-                      className="px-2.5 py-1 rounded-sm bg-critical text-paper text-[9px] font-bold uppercase tracking-wider hover:bg-critical/85 transition-colors cursor-pointer flex items-center gap-1 border border-critical/35 shadow-sm"
-                    >
-                      <Check className="w-3 h-3" />
-                      Evoluir
-                    </button>
                   </div>
                 )}
               </div>
@@ -163,6 +155,9 @@ export function WatchlistPanel({ onProposeEvolucao, onRefreshTrigger }: Watchlis
                     <span className="text-slate-dim block mb-0.5 uppercase tracking-wider font-mono">Corpo IML (SGOU)</span>
                     <span className="text-critical block font-bold">{item.suspeita_evolucao.nome_vitima_iml || "Sem Identificação"}</span>
                     <span className="text-slate block mt-0.5">NIC: {item.suspeita_evolucao.nic} | {item.suspeita_evolucao.data_entrada_iml}</span>
+                  </div>
+                  <div className="col-span-2 border-t border-critical/10 pt-1.5 text-center text-slate font-sans leading-relaxed text-[8.5px]">
+                    Oriente a reclassificação de tentativa para MVI e vincule o NIC na base SIESP para consolidar automaticamente.
                   </div>
                 </div>
               )}
